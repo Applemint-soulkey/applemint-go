@@ -21,10 +21,10 @@ func main() {
 	}
 
 	// Start HTTP service.
-	log.Printf("listening on port %s", port)
-	if err := http.ListenAndServe(":" + port, nil); err != nil {
-		log.Fatal(err)
-	}
+	// log.Printf("listening on port %s", port)
+	// if err := http.ListenAndServe(":" + port, nil); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

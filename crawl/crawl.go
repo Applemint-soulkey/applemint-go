@@ -1,6 +1,7 @@
 package crawl
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,7 +19,7 @@ type Item struct {
 
 func Crawl(url string) {
 	fmt.Println(("I'm crawl"))
-	CrawlBP()
+	CrawlDD()
 }
 
 func checkError(err error) {
@@ -34,7 +35,14 @@ func checkResponseCode(res *http.Response) {
 }
 
 func getPageDocument(targetURL string) *goquery.Document {
-	res, err := http.Get(targetURL)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{MaxVersion: tls.VersionTLS12},
+	}
+	client := &http.Client{Transport: tr}
+
+	req, err := http.NewRequest("GET", targetURL, nil)
+	checkError(err)
+	res, err := client.Do(req)
 	checkError(err)
 	checkResponseCode(res)
 	defer res.Body.Close()

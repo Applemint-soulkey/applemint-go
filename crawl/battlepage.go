@@ -9,8 +9,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-var PAGE_SIZE = 5
-
 func CrawlBP() []Item {
 	targetList := []string{}
 	
