@@ -5,7 +5,8 @@ import (
 )
 
 func Crawl(url string) {
-	fmt.Println(("I'm crawling"))
+	fmt.Println(("I'm crawl"))
+	CrawlBP()
 }
 
 
