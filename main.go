@@ -2,6 +2,7 @@ package main
 
 import (
 	"applemint-go/crawl"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +10,13 @@ import (
 )
 
 func main() {
-	crawl.Crawl("http://golang.org/")
 	log.Print("starting server...")
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/crawl/bp", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(crawl.GetCrawlBPResult())
+	})
 
 	// Determine port for HTTP service.
 	port := os.Getenv("PORT")
@@ -21,10 +26,10 @@ func main() {
 	}
 
 	// Start HTTP service.
-	// log.Printf("listening on port %s", port)
-	// if err := http.ListenAndServe(":" + port, nil); err != nil {
-	// 	log.Fatal(err)
-	// }
+	log.Printf("listening on port %s", port)
+	if err := http.ListenAndServe(":" + port, nil); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -34,3 +39,4 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "Hello %s!", name)
 }
+
