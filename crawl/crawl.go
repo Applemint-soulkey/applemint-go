@@ -20,7 +20,6 @@ func GetCrawlBPResult() []Item {
 	return CrawlBP()
 }
 
-
 func checkError(err error) {
 	if err != nil {
 		log.Fatalln(err)

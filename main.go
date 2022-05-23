@@ -17,6 +17,11 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(crawl.GetCrawlBPResult())
 	})
+	http.HandleFunc("/crawl/isg", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(crawl.CrawlISG())
+	})
 
 	// Determine port for HTTP service.
 	port := os.Getenv("PORT")
@@ -39,4 +44,3 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "Hello %s!", name)
 }
-
