@@ -10,10 +10,10 @@ import (
 )
 
 type Item struct {
-	TextContent string
-	Url   string
-	Timestamp time.Time
-	Source string
+	TextContent string `json:"text_content" bson:"text_content"` 
+	Url   string `json:"url" bson:"url"`
+	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
+	Source string `json:"source" bson:"source"`
 }
 
 func GetCrawlBPResult() []Item {

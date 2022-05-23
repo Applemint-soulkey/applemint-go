@@ -11,6 +11,9 @@ import (
 
 func main() {
 	log.Print("starting server...")
+	os.Setenv("env_mongo_id", "rlatmfrl24")
+	os.Setenv("env_mongo_pwd", "397love")
+	crawl.ConnectDB()
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/crawl/bp", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

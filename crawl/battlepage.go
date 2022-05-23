@@ -1,12 +1,14 @@
 package crawl
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func CrawlBP() []Item {
@@ -28,6 +30,21 @@ func CrawlBP() []Item {
 		items = append(items,  getItemsFromBP(doc)...)
 	}
 
+	
+	// DB
+	dbclient := ConnectDB()
+	coll := dbclient.Database("Test").Collection("simpleItem")
+	bsonSet := make([]interface{}, len(items))
+
+	for i, item := range items {
+		data, err := bson.Marshal(item)
+		checkError(err)
+		bsonSet[i] = data
+	}
+
+	_, err := coll.InsertMany(context.TODO(), bsonSet)
+	checkError(err)
+	
 	return items
 }
 
