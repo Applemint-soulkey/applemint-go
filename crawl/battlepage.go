@@ -1,7 +1,6 @@
 package crawl
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -18,7 +17,6 @@ func CrawlBP() int {
 		targetList = append(targetList, BASE_URL_BP + "/??=Board.Humor.Table&page=" + strconv.Itoa(i+1))
 		targetList = append(targetList, BASE_URL_BP + "/??=Board.ETC.Table&page=" + strconv.Itoa(i+1))
 	}
-	fmt.Println(targetList)
 
 	// Get Items
 	log.Print("Get Items")

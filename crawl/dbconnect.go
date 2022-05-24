@@ -2,7 +2,6 @@ package crawl
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -82,7 +81,7 @@ func InsertItems(items []Item) int {
 		log.Println("Inserted items to Collection::History ")
 		checkError(err)
 
-		fmt.Printf("Insert Conunt: %d\n" , len(result_item.InsertedIDs))
+		log.Printf("Insert Conunt: %d\n" , len(result_item.InsertedIDs))
 		return len(result_item.InsertedIDs) 
 	}
 
