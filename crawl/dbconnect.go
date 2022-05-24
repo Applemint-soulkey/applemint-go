@@ -79,7 +79,7 @@ func InsertItems(items []Item) int {
 		log.Println("Inserted items to Collection::New")
 		checkError(err)
 		_, err = coll_history.InsertMany(context.TODO(), itemBsonSet)
-		log.Println("Inserted items to Collection:History ")
+		log.Println("Inserted items to Collection::History ")
 		checkError(err)
 
 		fmt.Printf("Insert Conunt: %d\n" , len(result_item.InsertedIDs))

@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
+	github.com/petar-dambovaliev/aho-corasick v0.0.0-20211021192214-5ab2d9280aa9
 	gitlab.com/golang-commonmark/linkify v0.0.0-20200225224916-64bca66f6ad3
 	go.mongodb.org/mongo-driver v1.9.1
 )
