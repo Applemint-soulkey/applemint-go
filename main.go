@@ -2,6 +2,7 @@ package main
 
 import (
 	"applemint-go/crawl"
+	"applemint-go/crud"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,16 +16,10 @@ func main() {
 	os.Setenv("env_mongo_pwd", "397love")
 	crawl.ConnectDB()
 	http.HandleFunc("/", handler)
-	http.HandleFunc("/crawl/bp", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(crawl.GetCrawlBPResult())
-	})
-	http.HandleFunc("/crawl/isg", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(crawl.CrawlISG())
-	})
+	http.HandleFunc("/crawl/bp", handleCrawlBPRequest)
+	http.HandleFunc("/crawl/isg", handleCrawlISGRequest)
+
+	crud.Test()
 
 	// Determine port for HTTP service.
 	port := os.Getenv("PORT")
@@ -38,6 +33,18 @@ func main() {
 	if err := http.ListenAndServe(":" + port, nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func handleCrawlISGRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(crawl.CrawlISG())
+}
+
+func handleCrawlBPRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(crawl.CrawlBP())
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

@@ -16,10 +16,6 @@ type Item struct {
 	Source string `json:"source" bson:"source"`
 }
 
-func GetCrawlBPResult() int {
-	return CrawlBP()
-}
-
 func checkError(err error) {
 	if err != nil {
 		log.Fatalln(err)

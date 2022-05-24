@@ -4,6 +4,8 @@ go 1.18
 
 require applemint-go/crawl v0.0.0
 
+require applemint-go/crud v0.0.0
+
 require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
@@ -24,4 +26,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 )
 
-replace applemint-go/crawl v0.0.0 => ./crawl
+replace (
+	applemint-go/crawl v0.0.0 => ./crawl
+	applemint-go/crud v0.0.0 => ./crud
+)
