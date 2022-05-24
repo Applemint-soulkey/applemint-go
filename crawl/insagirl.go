@@ -48,10 +48,12 @@ func getIsgData(url string) []Item {
 	err = json.Unmarshal(body, &data)
 	checkError(err)
 
+	ignoreList := getIgnoreListFromDB()
+
 	items := []Item{}
 	for _, v := range data.V {
 		dataSet := strings.Split(v, "|")
-		if !containIgnoreWord(dataSet, getIgnoreListFromDB()) {
+		if !containIgnoreWord(dataSet, ignoreList) {
 			items = append(items, getItemFromRawData(dataSet[2]))
 		}
 	}
