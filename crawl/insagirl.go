@@ -2,8 +2,8 @@ package crawl
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -15,7 +15,7 @@ type respType struct {
 	V []string `json:"v"`
 }
 
-func CrawlISG() []Item {
+func CrawlISG() int {
 	targetList := []string{
 		"http://insagirl-hrm.appspot.com/json2/1/1/2/",
 		"http://insagirl-hrm.appspot.com/json2/2/1/2/",
@@ -23,15 +23,15 @@ func CrawlISG() []Item {
 
 	items := []Item{}
 	// Get Items
+	log.Print("Get Items")
 	for _, targetURL := range targetList {
 		items = append(items, getIsgData(targetURL)...)
 	}
 
-	for _, item := range items {
-		fmt.Println(item)
-	}
+	log.Print("Insert Items")
+	insertedCount := InsertItems(items)
 
-	return items
+	return insertedCount
 }
 
 func getIsgData(url string) []Item {
@@ -59,7 +59,6 @@ func getItemFromRawData(rawString string) Item {
 	links := linkify.Links(rawString)
 	for _, link := range links {
 		linkString := rawString[link.Start:link.End]
-		fmt.Println(linkString)
 		item.Url = linkString
 		item.Timestamp = time.Now()
 		item.Source = "insagirl"

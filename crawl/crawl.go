@@ -16,7 +16,7 @@ type Item struct {
 	Source string `json:"source" bson:"source"`
 }
 
-func GetCrawlBPResult() []Item {
+func GetCrawlBPResult() int {
 	return CrawlBP()
 }
 
@@ -24,6 +24,15 @@ func checkError(err error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func Contains[T comparable](s []T, e T) bool {
+    for _, v := range s {
+        if v == e {
+            return true
+        }
+    }
+    return false
 }
 
 func checkResponseCode(res *http.Response) {
