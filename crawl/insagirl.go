@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bobesa/go-domain-util/domainutil"
 	ahocorasick "github.com/petar-dambovaliev/aho-corasick"
 	"gitlab.com/golang-commonmark/linkify"
 	"go.mongodb.org/mongo-driver/bson"
@@ -104,7 +105,10 @@ func getItemFromRawData(rawString string) Item {
 		linkString := rawString[link.Start:link.End]
 		item.Url = linkString
 		item.Timestamp = time.Now()
+		item.Domain = domainutil.Domain(linkString)
 		item.Source = "insagirl"
+		item.Tags = []string{}
+		item.Path = ""
 		item.TextContent =  strings.Trim(strings.Replace(rawString, linkString, "", -1), " ")
 	}
 	return item

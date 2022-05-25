@@ -12,17 +12,59 @@ import (
 )
 
 type Item struct {
-	TextContent string `json:"text_content" bson:"text_content"` 
-	Url   string `json:"url" bson:"url"`
-	Path string `json:"path" bson:"path"`
-	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
-	Source string `json:"source" bson:"source"`
+	TextContent string    `json:"text_content" bson:"text_content"`
+	Url         string    `json:"url" bson:"url"`
+	Timestamp   time.Time `json:"timestamp" bson:"timestamp"`
+	Domain		string	  `json:"domain" bson:"domain"`
+	Tags		[]string  `json:"tags" bson:"tags"`
+	Path		string	  `json:"path" bson:"path"`
+	Source      string    `json:"source" bson:"source"`
 }
 
 func checkError(err error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func ClearCollection(coll string) int64 {
+	dbclient := connectDB()
+	coll_item := dbclient.Database("Item").Collection(coll)
+	result, err := coll_item.DeleteMany(context.TODO(), bson.M{})
+	checkError(err)
+
+	return result.DeletedCount
+}
+
+func GetItem(itemId string, collectionName string) Item {
+	// itemId Length Check
+	if len(itemId) != 24 {return Item{}}
+
+	// Connect to DB
+	dbclient := connectDB()
+	coll := dbclient.Database("Item").Collection(collectionName)
+
+	// itemId to ObjectId
+	bsonItemId, err := primitive.ObjectIDFromHex(itemId)
+	checkError(err)
+
+	// Get
+	item := Item{}
+	err = coll.FindOne(context.TODO(), bson.M{"_id": bsonItemId}).Decode(&item)
+	checkError(err)
+	return item
+}
+
+func UpdateItem(itemId string, collectionName string, item Item) int64 {
+	// Connect to DB
+	dbclient := connectDB()
+	coll := dbclient.Database("Item").Collection(collectionName)
+	bsonItemId, err := primitive.ObjectIDFromHex(itemId)
+
+	// Update
+	result, err := coll.UpdateOne(context.TODO(), bson.M{"_id": bsonItemId}, bson.M{"$set": item})
+	checkError(err)
+	return result.ModifiedCount
 }
 
 func DeleteItem(itemId string, collectionName string) int64 {

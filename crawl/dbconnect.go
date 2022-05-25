@@ -25,7 +25,7 @@ func ConnectDB() *mongo.Client {
 }
 
 func getHistory(dbclient *mongo.Client) []string {
-	coll := dbclient.Database("Item").Collection("History")
+	coll := dbclient.Database("Item").Collection("history")
 	cursor, err := coll.Find(context.TODO(), bson.D{})
 	checkError(err)
 
@@ -66,8 +66,8 @@ func makeBsonSet(item []Item) []interface{} {
 
 func InsertItems(items []Item) int {
 	dbclient := ConnectDB()
-	coll_new := dbclient.Database("Item").Collection("New")
-	coll_history := dbclient.Database("Item").Collection("History")
+	coll_new := dbclient.Database("Item").Collection("new")
+	coll_history := dbclient.Database("Item").Collection("history")
 	filtered := filterItems(dbclient, items)
 	itemBsonSet := makeBsonSet(filtered)
 

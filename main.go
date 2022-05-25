@@ -19,9 +19,9 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
 	r.HandleFunc("/item/move/", handleMoveItemRequest).Methods("POST")
-	r.HandleFunc("/item/{collection}/{id}", handleDeleteItemRequest).Methods("DELETE")
+	r.HandleFunc("/item/{collection}/{id}", handleItemRequest).Methods("GET", "POST","DELETE")
+	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
-	
 	
 	http.Handle("/", r)
 
@@ -36,6 +36,18 @@ func main() {
 	log.Printf("listening on port %s", port)
 	if err := http.ListenAndServe(":" + port, nil); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	target := mux.Vars(r)["target"]
+	delCnt := crud.ClearCollection(target)
+	if delCnt > 0 {
+		fmt.Fprintf(w, "Deleted %d items from collection %s", delCnt, target)
+	} else {
+		fmt.Fprintf(w, "Collection %s is empty", target)
 	}
 }
 
@@ -56,16 +68,36 @@ func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func handleDeleteItemRequest(w http.ResponseWriter, r *http.Request) {
+func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	targetCollection := mux.Vars(r)["collection"]
-	delCnt := crud.DeleteItem(targetId, targetCollection)
-	if delCnt > 0 {
-		fmt.Fprintf(w, "{\"msg\": \"item deleted from %s -> %s\"}", targetCollection, targetId)
-	} else {
-		fmt.Fprintf(w, "{\"error\": \"cannot find item from %s -> %s\"}", targetCollection, targetId)
+	switch r.Method {
+	case "GET":
+		item := crud.GetItem(targetId, targetCollection)
+		json.NewEncoder(w).Encode(item)
+
+	case "POST":
+		item := crud.Item{}
+		err := json.NewDecoder(r.Body).Decode(&item)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		updateCnt := crud.UpdateItem(targetId, targetCollection, item)
+		if updateCnt > 0 {
+			fmt.Fprintf(w, "Updated %d items from collection %s", updateCnt, targetCollection)
+		} else {
+			fmt.Fprintf(w, "Collection %s is empty", targetCollection)
+		}
+	case "DELETE":
+		delCnt := crud.DeleteItem(targetId, targetCollection)
+		if delCnt > 0 {
+			fmt.Fprintf(w, "{\"msg\": \"item deleted from %s -> %s\"}", targetCollection, targetId)
+		} else {
+			fmt.Fprintf(w, "{\"error\": \"cannot find item from %s -> %s\"}", targetCollection, targetId)
+		}
 	}
 }
 

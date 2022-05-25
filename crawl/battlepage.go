@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/bobesa/go-domain-util/domainutil"
 )
 
 func CrawlBP() int {
@@ -26,7 +27,6 @@ func CrawlBP() int {
 		items = append(items,  getItemsFromBP(doc)...)
 	}
 
-	
 	// Insert Items
 	log.Print("Insert Items")
 	insertedCount := InsertItems(items)
@@ -47,6 +47,9 @@ func getItemFromBP(doc *goquery.Selection) Item {
 	item.TextContent, _ = doc.Find(".bp_subject").Attr("title")
 	itemLink, _ := doc.Find("a").Attr("href")
 	item.Url = BASE_URL_BP+itemLink
+	item.Domain = domainutil.Domain(item.Url)
+	item.Tags = []string{}
+	item.Path = ""
 	item.Timestamp = time.Now()
 	item.Source = "battlepage"
 	return item
