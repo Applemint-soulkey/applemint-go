@@ -4,17 +4,11 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Item struct {
-	TextContent string `json:"text_content" bson:"text_content"` 
-	Url   string `json:"url" bson:"url"`
-	Timestamp time.Time `json:"timestamp" bson:"timestamp"`
-	Source string `json:"source" bson:"source"`
-}
+
 
 func checkError(err error) {
 	if err != nil {
