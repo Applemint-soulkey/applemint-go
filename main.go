@@ -1,10 +1,6 @@
 package main
 
 import (
-	"applemint-go/crawl"
-	"applemint-go/crud"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +14,8 @@ func main() {
 	os.Setenv("env_mongo_pwd", "397love")
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
-	r.HandleFunc("/item/move/", handleMoveItemRequest).Methods("POST")
+	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
+	r.HandleFunc("/item/keep/{id}", handleKeepItemRequest).Methods("POST")
 	r.HandleFunc("/item/{collection}/{id}", handleItemRequest).Methods("GET", "POST","DELETE")
 	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
@@ -37,74 +34,4 @@ func main() {
 	if err := http.ListenAndServe(":" + port, nil); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	target := mux.Vars(r)["target"]
-	delCnt := crud.ClearCollection(target)
-	if delCnt > 0 {
-		fmt.Fprintf(w, "Deleted %d items from collection %s", delCnt, target)
-	} else {
-		fmt.Fprintf(w, "Collection %s is empty", target)
-	}
-}
-
-func handleCrawlRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	switch expression := mux.Vars(r)["target"]; expression {
-	case "bp":
-		json.NewEncoder(w).Encode(crawl.CrawlBP())
-	case "isg":
-		json.NewEncoder(w).Encode(crawl.CrawlISG())
-	}
-}
-
-func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-}
-
-func handleItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	targetId := mux.Vars(r)["id"]
-	targetCollection := mux.Vars(r)["collection"]
-	switch r.Method {
-	case "GET":
-		item := crud.GetItem(targetId, targetCollection)
-		json.NewEncoder(w).Encode(item)
-
-	case "POST":
-		item := crud.Item{}
-		err := json.NewDecoder(r.Body).Decode(&item)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		updateCnt := crud.UpdateItem(targetId, targetCollection, item)
-		if updateCnt > 0 {
-			fmt.Fprintf(w, "Updated %d items from collection %s", updateCnt, targetCollection)
-		} else {
-			fmt.Fprintf(w, "Collection %s is empty", targetCollection)
-		}
-	case "DELETE":
-		delCnt := crud.DeleteItem(targetId, targetCollection)
-		if delCnt > 0 {
-			fmt.Fprintf(w, "{\"msg\": \"item deleted from %s -> %s\"}", targetCollection, targetId)
-		} else {
-			fmt.Fprintf(w, "{\"error\": \"cannot find item from %s -> %s\"}", targetCollection, targetId)
-		}
-	}
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	name := os.Getenv(("NAME"))
-	if name == "" {
-		name = "World"
-	}
-	fmt.Fprintf(w, "Hello %s!", name)
 }

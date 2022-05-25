@@ -2,6 +2,7 @@ package crud
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -84,10 +85,10 @@ func DeleteItem(itemId string, collectionName string) int64 {
 	return result.DeletedCount
 }
 
-func MoveItem(itemId string, coll_origin string, coll_dest string) {
+func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 
 	// itemId Length Check
-	if len(itemId) != 24 {return}
+	if len(itemId) != 24 {return errors.New("itemId length error")}
 
 	// Connect to DB
 	dbclient := connectDB()
@@ -106,12 +107,17 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) {
 		}
 		item := Item{}
 		err = origin_coll.FindOne(context.TODO(), bson.M{"_id": bsonItemId}).Decode(&item)
-		checkError(err)
-		fmt.Println(item)
+		if err != nil {
+			return err
+		}
 		_, err = dest_coll.InsertOne(context.TODO(), item)
-		checkError(err)
+		if err != nil {
+			return err
+		}
 		_, err = origin_coll.DeleteOne(context.TODO(), bson.M{"_id": bsonItemId})
-		checkError(err)
+		if err != nil {
+			return err
+		}
 		defer sessionContext.EndSession(sessionContext)
 		err = sessionContext.CommitTransaction(sessionContext)
 		if err != nil {
@@ -121,11 +127,7 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) {
 	})
 
 	checkError(err)
-}
-
-func KeepItem(item Item, itemPath string) {
-	fmt.Println("keep item")
-
+	return err
 }
 
 func sendToDropbox(item Item) {
