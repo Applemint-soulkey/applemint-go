@@ -5,6 +5,7 @@ import (
 	"applemint-go/crud"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -112,6 +113,23 @@ func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Fprintf(w, "{\"error\": \"cannot find item from %s -> %s\"}", targetCollection, targetId)
 		}
+	}
+}
+
+func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
+	log.Print("handleDropboxTest")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	path := r.URL.Query().Get("path")
+	url := r.URL.Query().Get("url")
+	if path == "" || url == "" {
+		fmt.Fprintf(w, "Missing parameters")
+		return
+	}
+	err := crud.SendToDropbox(path, url)
+	if err != nil {
+		fmt.Fprintf(w, "Error sending to dropbox: %s", err)
+		return
 	}
 }
 
