@@ -37,9 +37,9 @@ func ClearCollection(coll string) int64 {
 	return result.DeletedCount
 }
 
-func GetItem(itemId string, collectionName string) Item {
+func GetItem(itemId string, collectionName string) (Item, error) {
 	// itemId Length Check
-	if len(itemId) != 24 {return Item{}}
+	if len(itemId) != 24 {return Item{}, errors.New("itemId length error")}
 
 	// Connect to DB
 	dbclient := connectDB()
@@ -47,13 +47,14 @@ func GetItem(itemId string, collectionName string) Item {
 
 	// itemId to ObjectId
 	bsonItemId, err := primitive.ObjectIDFromHex(itemId)
-	checkError(err)
+	if err != nil {
+		return Item{}, errors.New("itemId to ObjectId error")
+	}
 
 	// Get
 	item := Item{}
 	err = coll.FindOne(context.TODO(), bson.M{"_id": bsonItemId}).Decode(&item)
-	checkError(err)
-	return item
+	return item, err
 }
 
 func UpdateItem(itemId string, collectionName string, item Item) int64 {

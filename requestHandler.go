@@ -85,7 +85,11 @@ func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 	targetCollection := mux.Vars(r)["collection"]
 	switch r.Method {
 	case "GET":
-		item := crud.GetItem(targetId, targetCollection)
+		item, err := crud.GetItem(targetId, targetCollection)
+		if err != nil {
+			fmt.Fprintf(w, "Error getting item: %s", err)
+			return
+		}
 		json.NewEncoder(w).Encode(item)
 
 	case "POST":
