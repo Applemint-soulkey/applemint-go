@@ -4,14 +4,18 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	log.Print("starting server...")
-	os.Setenv("env_mongo_id", "rlatmfrl24")
-	os.Setenv("env_mongo_pwd", "397love")
+	_, err := strconv.ParseBool(os.Getenv("env_is_cloud")) 
+	if err != nil {
+		setUpLocalEnviroment()
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
 	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
