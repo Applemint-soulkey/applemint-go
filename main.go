@@ -6,13 +6,16 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	log.Print("starting server...")
 
-	os.Setenv("env_mongo_id", "rlatmfrl24")
-	os.Setenv("env_mongo_pwd", "397love")
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
@@ -22,6 +25,10 @@ func main() {
 	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
 	
+	r.HandleFunc("/dropbox/", handleDropboxRequest).Methods("GET")
+	r.HandleFunc("/raindrop/{collectionId}", handleRaindropRequest).Methods("POST")
+	r.HandleFunc("/raindrop/collections", handleRaindropCollectionRequest).Methods("GET")
+
 	http.Handle("/", r)
 
 	// Determine port for HTTP service.

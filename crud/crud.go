@@ -3,30 +3,12 @@ package crud
 import (
 	"context"
 	"errors"
-	"fmt"
-	"log"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Item struct {
-	TextContent string    `json:"text_content" bson:"text_content"`
-	Url         string    `json:"url" bson:"url"`
-	Timestamp   time.Time `json:"timestamp" bson:"timestamp"`
-	Domain		string	  `json:"domain" bson:"domain"`
-	Tags		[]string  `json:"tags" bson:"tags"`
-	Path		string	  `json:"path" bson:"path"`
-	Source      string    `json:"source" bson:"source"`
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
 
 func ClearCollection(coll string) int64 {
 	dbclient := connectDB()
@@ -129,12 +111,4 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 
 	checkError(err)
 	return err
-}
-
-func sendToDropbox(item Item) {
-	fmt.Println("send to dropbox")
-}
-
-func sendToRaindrop(item Item) {
-	fmt.Println("send to raindrop")
 }
