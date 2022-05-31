@@ -61,23 +61,26 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 		return nil, err
 	}
 
-	var result []string
+	collections := make([]map[string]interface{}, 0, 0)
 	items := rawData["items"].([]interface{})
 	for _, item := range items {
-		itemMap := item.(map[string]interface{})
-		idString := fmt.Sprintf("%.0f", itemMap["_id"])
-		itemString := `{id: "` + idString + `", title: "` + itemMap["title"].(string) + `"}`
-		result = append(result, itemString)
+		itemRawMap := item.(map[string]interface{})
+		idString := fmt.Sprintf("%.0f", itemRawMap["_id"])
+		
+		resultItem := make(map[string]interface{})
+		resultItem["id"] = idString
+		resultItem["title"] = itemRawMap["title"]
+		collections = append(collections, resultItem)
 	}
-	data, err := json.Marshal(result)
+	b, err := json.Marshal(collections)
 	if err != nil {
 		return nil, err
 	}
 
-	return data, err
+	return b, err
 }
 
-func SendToRaindrop(item Item, collection string) error {
+func SendToRaindrop(item Item, collection string) ([]byte, error) {
 	// connect to raindrop
 	log.Print("SendToRaindrop")
 	jsonData := bson.M{}
@@ -91,12 +94,12 @@ func SendToRaindrop(item Item, collection string) error {
 	data, err := json.Marshal(jsonData)
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequest("POST", "https://api.raindrop.io/rest/v1/raindrop", bytes.NewBuffer(data))
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
 	req.Header.Add("Authorization", "Bearer "+os.Getenv("env_raindrop_access_token"))
 	req.Header.Add("Content-Type", "application/json")
@@ -104,13 +107,16 @@ func SendToRaindrop(item Item, collection string) error {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	log.Println("response Body:", string(body))
 
-	return errors.New("not implemented")
+	return body, nil
 }

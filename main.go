@@ -1,9 +1,6 @@
 package main
 
 import (
-	"applemint-go/crud"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,35 +43,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
-func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	collections, err := crud.GetCollectionFromRaindrop()
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	json.NewEncoder(w).Encode(collections)
-}
-
-func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("handleRaindropRequest")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	collectionId := mux.Vars(r)["collectionId"]
-	item := crud.Item{}
-	json.NewDecoder(r.Body).Decode(&item)
-	if collectionId == "" {
-		fmt.Fprintf(w, "Missing parameters")
-		return
-	}
-
-	err := crud.SendToRaindrop(item, collectionId)
-	if err != nil {
-		fmt.Fprintf(w, "Error sending to raindrop: %s", err)
-		return
-	}
-}
-

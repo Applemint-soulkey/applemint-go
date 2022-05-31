@@ -133,6 +133,45 @@ func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	collections, err := crud.GetCollectionFromRaindrop()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, "%s", string(collections))
+}
+
+func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
+	log.Print("handleRaindropRequest")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	collectionId := mux.Vars(r)["collectionId"]
+	item := crud.Item{}
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if collectionId == "" {
+		fmt.Fprintf(w, "Missing parameters")
+		return
+	}
+
+	raindropResp, err := crud.SendToRaindrop(item, collectionId)
+	if err != nil {
+		fmt.Fprintf(w, "Error sending to raindrop: %s", err)
+		return
+	}
+	fmt.Fprintf(w, "%s", string(raindropResp))
+}
+
+
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	name := os.Getenv(("NAME"))
 	if name == "" {
