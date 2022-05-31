@@ -17,6 +17,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
 	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
