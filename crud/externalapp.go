@@ -21,7 +21,7 @@ const collectionAPI = "/rest/v1/collections"
 
 func SendToDropbox(path string, url string) error {
 	// connect to dropbox
-	access_token := os.Getenv("env_dropbox_access_token")
+	access_token := os.Getenv("ENV_DROPBOX_ACCESS_TOKEN")
 	if access_token == "" {
 		return errors.New("env_dropbox_access_token not set")
 	}
@@ -45,7 +45,7 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("env_raindrop_access_token"))
+	req.Header.Add("Authorization", "Bearer "+os.Getenv("ENV_RAINDROP_ACCESS_TOKEN"))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -101,7 +101,7 @@ func SendToRaindrop(item Item, collection string) ([]byte, error) {
 		log.Println(err)
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("env_raindrop_access_token"))
+	req.Header.Add("Authorization", "Bearer "+os.Getenv("ENV_RAINDROP_ACCESS_TOKEN"))
 	req.Header.Add("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)

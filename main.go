@@ -6,15 +6,16 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	log.Print("starting server...")
 
-	os.Setenv("env_mongo_id", "rlatmfrl24")
-	os.Setenv("env_mongo_pwd", "397love")
-	os.Setenv("env_dropbox_access_token", "sl.BIQJDuNkA6ZbRJ5rCfZiKfNb0f3Yx4OBgnLyUDON0-W1mGOmVo18aJWdF2FNy4DokNQS_9QZv1IPwVLBOlkJ0wMq1Zwr66zJRapJbcL_TfW1LqGARMVlUcIOteKdlS0O0J8JsCUy")
-	os.Setenv("env_raindrop_access_token", "54b0d37e-03b2-4453-b6d1-b59a49c4b536")
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
