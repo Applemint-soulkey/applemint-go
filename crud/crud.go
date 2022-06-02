@@ -22,21 +22,21 @@ func ClearCollection(coll string) int64 {
 	return result.DeletedCount
 }
 
-func GetItems(collectionName string, page int64) ([]Item, error) {
+func GetItems(collectionName string, cursor int64) ([]Item, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection(collectionName)
 	findOption := options.Find().SetSort(bson.M{"timestamp": -1})
 	findOption.SetLimit(PAGE_SIZE)
-	findOption.SetSkip(PAGE_SIZE * (page - 1))
-	cursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
+	findOption.SetSkip(cursor)
+	dbCursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
 	checkError(err)
 
 	// Get Items
 	var items []Item
-	for cursor.Next(context.TODO()) {
+	for dbCursor.Next(context.TODO()) {
 		var item Item
-		err = cursor.Decode(&item)
+		err = dbCursor.Decode(&item)
 		checkError(err)
 		items = append(items, item)
 	}
