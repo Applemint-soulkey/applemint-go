@@ -15,6 +15,7 @@ import (
 
 func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	target := mux.Vars(r)["target"]
 	delCnt := crud.ClearCollection(target)
@@ -27,6 +28,7 @@ func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleCrawlRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	switch expression := mux.Vars(r)["target"]; expression {
 	case "bp":
@@ -38,6 +40,7 @@ func handleCrawlRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	target_coll := r.URL.Query().Get("target")
@@ -56,6 +59,7 @@ func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleKeepItemRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	item := crud.Item{}
@@ -82,6 +86,7 @@ func handleKeepItemRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	target := mux.Vars(r)["collection"]
 	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
@@ -99,6 +104,7 @@ func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	targetCollection := mux.Vars(r)["collection"]
@@ -137,6 +143,7 @@ func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
 	log.Print("handleDropboxTest")
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	path := r.URL.Query().Get("path")
 	url := r.URL.Query().Get("url")
@@ -153,6 +160,7 @@ func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	collections, err := crud.GetCollectionFromRaindrop()
 	if err != nil {
@@ -166,6 +174,7 @@ func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
 func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
 	log.Print("handleRaindropRequest")
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	collectionId := mux.Vars(r)["collectionId"]
 	item := crud.Item{}
