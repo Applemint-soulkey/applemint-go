@@ -7,8 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const PAGE_SIZE = 10
 
 func ClearCollection(coll string) int64 {
 	dbclient := connectDB()
@@ -18,6 +20,32 @@ func ClearCollection(coll string) int64 {
 
 	return result.DeletedCount
 }
+
+func GetItems(collectionName string, page int64) ([]Item, error) {
+	// Connect to DB
+	dbclient := connectDB()
+	coll := dbclient.Database("Item").Collection(collectionName)
+	findOption := options.Find().SetSort(bson.M{"timestamp": -1})
+	findOption.SetLimit(PAGE_SIZE)
+	findOption.SetSkip(PAGE_SIZE * (page - 1))
+	cursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
+	checkError(err)
+
+	// Get Items
+	var items []Item
+	for cursor.Next(context.TODO()) {
+		var item Item
+		err = cursor.Decode(&item)
+		checkError(err)
+		items = append(items, item)
+	}
+	if len(items) <= 0 {
+		return nil, errors.New("no item")
+	}
+
+	return items, nil
+}
+
 
 func GetItem(itemId string, collectionName string) (Item, error) {
 	// itemId Length Check
