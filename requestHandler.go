@@ -89,11 +89,11 @@ func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")	
 	w.WriteHeader(http.StatusOK)
 	target := mux.Vars(r)["collection"]
-	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
+	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
 	if err != nil {
-		pageNum = 1
+		cursor = 1
 	}
-	items, err := crud.GetItems(target, int64(pageNum))
+	items, err := crud.GetItems(target, int64(cursor))
 	if err != nil {
 		fmt.Fprintf(w, `{"Error getting items": "%s"}`, err)
 		return
