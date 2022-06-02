@@ -23,6 +23,8 @@ func main() {
 	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
 	r.HandleFunc("/item/keep/{id}", handleKeepItemRequest).Methods("POST")
 	r.HandleFunc("/item/{collection}/{id}", handleItemRequest).Methods("GET", "POST","DELETE")
+	r.HandleFunc("/items/{collection}", handleItemsRequest).Methods("GET")
+
 	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
 	
@@ -45,3 +47,4 @@ func main() {
 		log.Fatal(err)
 	}
 }
+

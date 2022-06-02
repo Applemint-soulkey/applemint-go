@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -77,6 +78,23 @@ func handleKeepItemRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "Updated Item moved from new to keep")
+}
+
+func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	target := mux.Vars(r)["collection"]
+	pageNum, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		pageNum = 1
+	}
+	items, err := crud.GetItems(target, int64(pageNum))
+	if err != nil {
+		fmt.Fprintf(w, `{"Error getting items": "%s"}`, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(items)
 }
 
 func handleItemRequest(w http.ResponseWriter, r *http.Request) {
