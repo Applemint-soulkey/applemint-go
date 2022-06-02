@@ -12,6 +12,7 @@ import (
 
 const PAGE_SIZE = 10
 
+
 func ClearCollection(coll string) int64 {
 	dbclient := connectDB()
 	coll_item := dbclient.Database("Item").Collection(coll)
