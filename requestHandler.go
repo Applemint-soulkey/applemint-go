@@ -91,7 +91,7 @@ func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
 	target := mux.Vars(r)["collection"]
 	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
 	if err != nil {
-		cursor = 1
+		cursor = 0
 	}
 	items, err := crud.GetItems(target, int64(cursor))
 	if err != nil {

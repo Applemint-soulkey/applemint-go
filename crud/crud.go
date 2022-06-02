@@ -33,15 +33,12 @@ func GetItems(collectionName string, cursor int64) ([]Item, error) {
 	checkError(err)
 
 	// Get Items
-	var items []Item
+	var items []Item = make([]Item, 0)
 	for dbCursor.Next(context.TODO()) {
 		var item Item
 		err = dbCursor.Decode(&item)
 		checkError(err)
 		items = append(items, item)
-	}
-	if len(items) <= 0 {
-		return nil, errors.New("no item")
 	}
 
 	return items, nil
