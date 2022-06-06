@@ -3,7 +3,7 @@ package crawl
 import "time"
 
 var PAGE_SIZE = 1
-var BASE_URL_BP = "https://v12.battlepage.com/"
+var BASE_URL_BP = "https://v12.battlepage.com"
 
 type Item struct {
 	TextContent string    `json:"text_content" bson:"text_content"`
