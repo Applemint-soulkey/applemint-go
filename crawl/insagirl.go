@@ -3,6 +3,7 @@ package crawl
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,8 +12,8 @@ import (
 
 	"github.com/bobesa/go-domain-util/domainutil"
 	ahocorasick "github.com/petar-dambovaliev/aho-corasick"
-	"gitlab.com/golang-commonmark/linkify"
 	"go.mongodb.org/mongo-driver/bson"
+	"mvdan.cc/xurls/v2"
 )
 
 type respType struct {
@@ -54,8 +55,9 @@ func getIsgData(url string) []Item {
 	items := []Item{}
 	for _, v := range data.V {
 		dataSet := strings.Split(v, "|")
-		if !containIgnoreWord(dataSet, ignoreList) {
-			items = append(items, getItemFromRawData(dataSet[2]))
+		item, err := getItemFromRawData(dataSet[2])
+		if !containIgnoreWord(dataSet, ignoreList) && err == nil {
+			items = append(items, item)
 		}
 	}
 	return items
@@ -98,18 +100,22 @@ func containIgnoreWord(dataSet []string, ignoreList []string) bool {
 	}
 }
 
-func getItemFromRawData(rawString string) Item {
+func getItemFromRawData(rawString string) (Item, error) {
 	item := Item{}
-	links := linkify.Links(rawString)
-	for _, link := range links {
-		linkString := rawString[link.Start:link.End]
-		item.Url = linkString
+	rx := xurls.Strict()
+	matches := rx.FindAllString(rawString, -1)
+	if len(matches) == 0 {
+		log.Println(rawString)
+		return item, errors.New("no url found")
+	}
+	for _, match := range matches {
+		item.Url = match
 		item.Timestamp = time.Now()
-		item.Domain = domainutil.Domain(linkString)
+		item.Domain = domainutil.Domain(match)
 		item.Source = "insagirl"
 		item.Tags = []string{}
 		item.Path = ""
-		item.TextContent = strings.Trim(strings.Replace(rawString, linkString, "", -1), " ")
+		item.TextContent = strings.Trim(strings.Replace(rawString, match, "", -1), " ")
 	}
-	return item
+	return item, nil
 }
