@@ -13,8 +13,8 @@ import (
 const PAGE_SIZE = 10
 
 type GroupInfo struct {
-	domain string `bson:"_id"`
-	count  int64  `bson:"count"`
+	Domain string `bson:"_id"`
+	Count  int64  `bson:"count"`
 }
 
 func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
@@ -52,19 +52,19 @@ func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
 	var groupInfos []GroupInfo = make([]GroupInfo, 0)
 
 	etcGroupInfo := GroupInfo{
-		domain: "etc",
-		count:  0,
+		Domain: "etc",
+		Count:  0,
 	}
 	var totalCount int64 = 0
 	for _, result := range results {
-		var groupInfo GroupInfo
+		groupInfo := GroupInfo{}
 		bytes, _ := bson.Marshal(result)
 		bson.Unmarshal(bytes, &groupInfo)
-		totalCount += groupInfo.count
-		if groupInfo.count > 10 {
+		totalCount += groupInfo.Count
+		if groupInfo.Count > 10 {
 			groupInfos = append(groupInfos, groupInfo)
 		} else {
-			etcGroupInfo.count += groupInfo.count
+			etcGroupInfo.Count += groupInfo.Count
 		}
 	}
 	groupInfos = append(groupInfos, etcGroupInfo)
