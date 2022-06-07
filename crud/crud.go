@@ -26,9 +26,7 @@ func GetItems(collectionName string, cursor int64) ([]Item, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection(collectionName)
-	findOption := options.Find().SetSort(bson.M{"timestamp": -1})
-	findOption.SetLimit(PAGE_SIZE)
-	findOption.SetSkip(cursor)
+	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetLimit(PAGE_SIZE).SetSkip(cursor)
 	dbCursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
 	checkError(err)
 
