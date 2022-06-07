@@ -11,12 +11,12 @@ import (
 
 func CrawlBP() int {
 	targetList := []string{}
-	
+
 	// Get Target List
 	log.Print("Get Target List")
 	for i := 0; i < PAGE_SIZE; i++ {
-		targetList = append(targetList, BASE_URL_BP + "/??=Board.Humor.Table&page=" + strconv.Itoa(i+1))
-		targetList = append(targetList, BASE_URL_BP + "/??=Board.ETC.Table&page=" + strconv.Itoa(i+1))
+		targetList = append(targetList, BASE_URL_BP+"/??=Board.Humor.Table&page="+strconv.Itoa(i+1))
+		targetList = append(targetList, BASE_URL_BP+"/??=Board.ETC.Table&page="+strconv.Itoa(i+1))
 	}
 
 	// Get Items
@@ -24,13 +24,13 @@ func CrawlBP() int {
 	items := []Item{}
 	for _, targetURL := range targetList {
 		doc := getPageDocument(targetURL)
-		items = append(items,  getItemsFromBP(doc)...)
+		items = append(items, getItemsFromBP(doc)...)
 	}
 
 	// Insert Items
 	log.Print("Insert Items")
 	insertedCount := InsertItems(items)
-	
+
 	return insertedCount
 }
 
@@ -46,7 +46,7 @@ func getItemFromBP(doc *goquery.Selection) Item {
 	item := Item{}
 	item.TextContent, _ = doc.Find(".bp_subject").Attr("title")
 	itemLink, _ := doc.Find("a").Attr("href")
-	item.Url = BASE_URL_BP+itemLink
+	item.Url = BASE_URL_BP + itemLink
 	item.Domain = domainutil.Domain(item.Url)
 	item.Tags = []string{}
 	item.Path = ""

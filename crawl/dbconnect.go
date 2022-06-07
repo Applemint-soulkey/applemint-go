@@ -14,7 +14,7 @@ import (
 func ConnectDB() *mongo.Client {
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	clientOptions := options.Client().
-		ApplyURI("mongodb+srv://"+os.Getenv("ENV_MONGO_ID")+":"+os.Getenv("ENV_MONGO_PWD")+"@cluster0.ptfrm.mongodb.net/?retryWrites=true&w=majority").
+		ApplyURI("mongodb+srv://" + os.Getenv("ENV_MONGO_ID") + ":" + os.Getenv("ENV_MONGO_PWD") + "@cluster0.ptfrm.mongodb.net/?retryWrites=true&w=majority").
 		SetServerAPIOptions(serverAPIOptions)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -33,16 +33,15 @@ func getHistory(dbclient *mongo.Client) []string {
 	err = cursor.All(context.TODO(), &results)
 	checkError(err)
 
-	
 	var history []string
 	for _, result := range results {
 		history = append(history, result["url"].(string))
 	}
-	
+
 	return history
 }
 
-func filterItems(dbclient *mongo.Client, items []Item) ([]Item) {
+func filterItems(dbclient *mongo.Client, items []Item) []Item {
 	history := getHistory(dbclient)
 	var result []Item
 	for _, item := range items {
@@ -79,8 +78,8 @@ func InsertItems(items []Item) int {
 		log.Println("Inserted items to Collection::History ")
 		checkError(err)
 
-		log.Printf("Insert Conunt: %d\n" , len(result_item.InsertedIDs))
-		return len(result_item.InsertedIDs) 
+		log.Printf("Insert Conunt: %d\n", len(result_item.InsertedIDs))
+		return len(result_item.InsertedIDs)
 	}
 
 	return 0
