@@ -89,7 +89,7 @@ func containIgnoreWord(dataSet []string, ignoreList []string) bool {
 	ac := builder.Build(ignoreList)
 	matches := ac.FindAll(dataSet[2])
 
-	if dataSet[1] == "syncwatch"{
+	if dataSet[1] == "syncwatch" {
 		return true
 	} else if len(matches) > 0 {
 		return true
@@ -109,7 +109,7 @@ func getItemFromRawData(rawString string) Item {
 		item.Source = "insagirl"
 		item.Tags = []string{}
 		item.Path = ""
-		item.TextContent =  strings.Trim(strings.Replace(rawString, linkString, "", -1), " ")
+		item.TextContent = strings.Trim(strings.Replace(rawString, linkString, "", -1), " ")
 	}
 	return item
 }

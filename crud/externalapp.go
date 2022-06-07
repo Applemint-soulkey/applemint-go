@@ -27,7 +27,7 @@ func SendToDropbox(path string, url string) error {
 	}
 
 	config := dropbox.Config{
-		Token: access_token,
+		Token:    access_token,
 		LogLevel: dropbox.LogInfo,
 	}
 	dbx := files.New(config)
@@ -66,7 +66,7 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 	for _, item := range items {
 		itemRawMap := item.(map[string]interface{})
 		idString := fmt.Sprintf("%.0f", itemRawMap["_id"])
-		
+
 		resultItem := make(map[string]interface{})
 		resultItem["id"] = idString
 		resultItem["title"] = itemRawMap["title"]
@@ -90,7 +90,7 @@ func SendToRaindrop(item Item, collection string) ([]byte, error) {
 	collectionJson := bson.M{}
 	collectionJson["$id"] = collection
 	jsonData["collection"] = collectionJson
-	
+
 	data, err := json.Marshal(jsonData)
 	if err != nil {
 		log.Println(err)

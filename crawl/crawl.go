@@ -8,8 +8,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-
-
 func checkError(err error) {
 	if err != nil {
 		log.Fatalln(err)
@@ -17,12 +15,12 @@ func checkError(err error) {
 }
 
 func Contains[T comparable](s []T, e T) bool {
-    for _, v := range s {
-        if v == e {
-            return true
-        }
-    }
-    return false
+	for _, v := range s {
+		if v == e {
+			return true
+		}
+	}
+	return false
 }
 
 func checkResponseCode(res *http.Response) {

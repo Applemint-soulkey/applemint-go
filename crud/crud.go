@@ -12,7 +12,6 @@ import (
 
 const PAGE_SIZE = 10
 
-
 func ClearCollection(coll string) int64 {
 	dbclient := connectDB()
 	coll_item := dbclient.Database("Item").Collection(coll)
@@ -42,10 +41,11 @@ func GetItems(collectionName string, cursor int64) ([]Item, error) {
 	return items, nil
 }
 
-
 func GetItem(itemId string, collectionName string) (Item, error) {
 	// itemId Length Check
-	if len(itemId) != 24 {return Item{}, errors.New("itemId length error")}
+	if len(itemId) != 24 {
+		return Item{}, errors.New("itemId length error")
+	}
 
 	// Connect to DB
 	dbclient := connectDB()
@@ -77,7 +77,9 @@ func UpdateItem(itemId string, collectionName string, item Item) int64 {
 
 func DeleteItem(itemId string, collectionName string) int64 {
 	// itemId Length Check
-	if len(itemId) != 24 {return 0}
+	if len(itemId) != 24 {
+		return 0
+	}
 
 	// Connect to DB
 	dbclient := connectDB()
@@ -95,13 +97,15 @@ func DeleteItem(itemId string, collectionName string) int64 {
 func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 
 	// itemId Length Check
-	if len(itemId) != 24 {return errors.New("itemId length error")}
+	if len(itemId) != 24 {
+		return errors.New("itemId length error")
+	}
 
 	// Connect to DB
 	dbclient := connectDB()
 	origin_coll := dbclient.Database("Item").Collection(coll_origin)
 	dest_coll := dbclient.Database("Item").Collection(coll_dest)
-	
+
 	// itemId to ObjectId
 	bsonItemId, err := primitive.ObjectIDFromHex(itemId)
 	checkError(err)
