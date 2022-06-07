@@ -13,6 +13,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func handleCollectionInfoRequest(w http.ResponseWriter, r *http.Request) {
+	collection := mux.Vars(r)["collection"]
+	totalCount, GroupInfos, err := crud.GetCollectionInfo(collection)
+	if err != nil {
+		fmt.Fprintf(w, "Error getting collection info: %s", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"totalCount": totalCount,
+		"groupInfos": GroupInfos,
+	})
+}
+
 func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")

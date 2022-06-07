@@ -12,6 +12,66 @@ import (
 
 const PAGE_SIZE = 10
 
+type GroupInfo struct {
+	domain string `bson:"_id"`
+	count  int64  `bson:"count"`
+}
+
+func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
+	// Connect to DB
+	dbclient := connectDB()
+	coll := dbclient.Database("Item").Collection(collectionName)
+
+	// Set Group Stage
+	groupStage := bson.D{
+		{"$group", bson.D{
+			{"_id", "$domain"},
+			{"count", bson.D{
+				{"$sum", 1},
+			}},
+		}},
+	}
+
+	// Set Sort Stage
+	sortStage := bson.D{
+		{"$sort", bson.D{
+			{"count", -1},
+		}},
+	}
+
+	// Aggregate Stage From Collection
+	dbCursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{groupStage, sortStage})
+	checkError(err)
+
+	// Load Domain Count
+	var results []bson.M
+	if err := dbCursor.All(context.TODO(), &results); err != nil {
+		panic(err)
+	}
+
+	var groupInfos []GroupInfo = make([]GroupInfo, 0)
+
+	etcGroupInfo := GroupInfo{
+		domain: "etc",
+		count:  0,
+	}
+	var totalCount int64 = 0
+	for _, result := range results {
+		var groupInfo GroupInfo
+		bytes, _ := bson.Marshal(result)
+		bson.Unmarshal(bytes, &groupInfo)
+		totalCount += groupInfo.count
+		if groupInfo.count > 10 {
+			groupInfos = append(groupInfos, groupInfo)
+		} else {
+			etcGroupInfo.count += groupInfo.count
+		}
+	}
+	groupInfos = append(groupInfos, etcGroupInfo)
+
+	return totalCount, groupInfos, nil
+}
+
 func ClearCollection(coll string) int64 {
 	dbclient := connectDB()
 	coll_item := dbclient.Database("Item").Collection(coll)
