@@ -11,6 +11,7 @@ import (
 )
 
 const PAGE_SIZE = 10
+const GROUP_SIZE = 10
 
 type GroupInfo struct {
 	Domain string `bson:"_id"`
@@ -61,7 +62,7 @@ func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
 		bytes, _ := bson.Marshal(result)
 		bson.Unmarshal(bytes, &groupInfo)
 		totalCount += groupInfo.Count
-		if groupInfo.Count > 10 {
+		if groupInfo.Count > GROUP_SIZE {
 			groupInfos = append(groupInfos, groupInfo)
 		} else {
 			etcGroupInfo.Count += groupInfo.Count
@@ -81,12 +82,33 @@ func ClearCollection(coll string) int64 {
 	return result.DeletedCount
 }
 
-func GetItems(collectionName string, cursor int64) ([]Item, error) {
+func GetItems(collectionName string, cursor int64, filter string) ([]Item, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection(collectionName)
+
+	// Set Filter
+	var filterMap bson.M
+
+	if filter == "etc" {
+		_, groupInfos, err := GetCollectionInfo(collectionName)
+		if err != nil {
+			return nil, err
+		}
+		var filterDomain []string = make([]string, 0)
+
+		for _, groupInfo := range groupInfos {
+			if groupInfo.Count > GROUP_SIZE {
+				filterDomain = append(filterDomain, groupInfo.Domain)
+			}
+		}
+		filterMap = bson.M{"domain": bson.M{"$nin": filterDomain}}
+	} else if filter != "" {
+		filterMap = bson.M{"domain": filter}
+	}
+
 	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetLimit(PAGE_SIZE).SetSkip(cursor)
-	dbCursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
+	dbCursor, err := coll.Find(context.TODO(), filterMap, findOption)
 	checkError(err)
 
 	// Get Items
