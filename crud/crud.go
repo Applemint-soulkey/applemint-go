@@ -10,9 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const PAGE_SIZE = 10
-const GROUP_SIZE = 10
-
 type GroupInfo struct {
 	Domain string `bson:"_id"`
 	Count  int64  `bson:"count"`

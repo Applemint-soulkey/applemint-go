@@ -10,6 +10,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const PAGE_SIZE = 20
+const GROUP_SIZE = 10
+
 type Item struct {
 	Id          string    `json:"id" bson:"_id"`
 	TextContent string    `json:"text_content" bson:"text_content"`
