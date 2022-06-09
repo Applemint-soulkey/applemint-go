@@ -3,6 +3,7 @@ package crud
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -172,6 +173,8 @@ func DeleteItem(itemId string, collectionName string) int64 {
 		return 0
 	}
 
+	fmt.Println(itemId)
+
 	// Connect to DB
 	dbclient := connectDB()
 
@@ -214,6 +217,7 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 		if err != nil {
 			return err
 		}
+
 		_, err = dest_coll.InsertOne(context.TODO(), item)
 		if err != nil {
 			return err
