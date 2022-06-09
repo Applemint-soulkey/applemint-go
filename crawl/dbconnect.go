@@ -82,5 +82,7 @@ func InsertItems(items []Item) int {
 		return len(result_item.InsertedIDs)
 	}
 
+	dbclient.Disconnect(context.TODO())
+
 	return 0
 }

@@ -70,6 +70,8 @@ func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
 	}
 	groupInfos = append(groupInfos, etcGroupInfo)
 
+	dbclient.Disconnect(context.TODO())
+
 	return totalCount, groupInfos, nil
 }
 
@@ -78,6 +80,8 @@ func ClearCollection(coll string) int64 {
 	coll_item := dbclient.Database("Item").Collection(coll)
 	result, err := coll_item.DeleteMany(context.TODO(), bson.M{})
 	checkError(err)
+
+	dbclient.Disconnect(context.TODO())
 
 	return result.DeletedCount
 }
@@ -120,6 +124,8 @@ func GetItems(collectionName string, cursor int64, filter string) ([]Item, error
 		items = append(items, item)
 	}
 
+	dbclient.Disconnect(context.TODO())
+
 	return items, nil
 }
 
@@ -142,6 +148,9 @@ func GetItem(itemId string, collectionName string) (Item, error) {
 	// Get
 	item := Item{}
 	err = coll.FindOne(context.TODO(), bson.M{"_id": bsonItemId}).Decode(&item)
+
+	dbclient.Disconnect(context.TODO())
+
 	return item, err
 }
 
@@ -154,6 +163,9 @@ func UpdateItem(itemId string, collectionName string, item Item) int64 {
 	// Update
 	result, err := coll.UpdateOne(context.TODO(), bson.M{"_id": bsonItemId}, bson.M{"$set": item})
 	checkError(err)
+
+	dbclient.Disconnect(context.TODO())
+
 	return result.ModifiedCount
 }
 
@@ -173,6 +185,8 @@ func DeleteItem(itemId string, collectionName string) int64 {
 	// Delete
 	result, err := dbclient.Database("Item").Collection(collectionName).DeleteOne(context.TODO(), bson.M{"_id": bsonItemId})
 	checkError(err)
+
+	dbclient.Disconnect(context.TODO())
 	return result.DeletedCount
 }
 
@@ -218,6 +232,8 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 		}
 		return nil
 	})
+
+	dbclient.Disconnect(context.TODO())
 
 	checkError(err)
 	return err
