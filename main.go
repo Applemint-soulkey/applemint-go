@@ -30,6 +30,8 @@ func main() {
 	r.HandleFunc("/collection/info/{collection}", handleCollectionInfoRequest).Methods("GET")
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
 
+	r.HandleFunc("/item/bookmark", handleBookmarkRequest).Methods("GET", "POST")
+
 	r.HandleFunc("/dropbox/", handleDropboxRequest).Methods("GET")
 	r.HandleFunc("/raindrop/{collectionId}", handleRaindropRequest).Methods("POST")
 	r.HandleFunc("/raindrop/collections", handleRaindropCollectionRequest).Methods("GET")

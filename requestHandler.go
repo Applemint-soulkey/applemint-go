@@ -200,6 +200,50 @@ func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", string(raindropResp))
 }
 
+func handleBookmarkRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	switch r.Method {
+	case "GET":
+		log.Println("handle bookmark list get")
+		bookmarks, err := crud.GetBookmarkList()
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(bookmarks)
+
+	case "POST":
+		log.Print("handleSendToBookmark")
+		source := r.URL.Query().Get("from")
+		path := r.URL.Query().Get("path")
+		log.Printf("source: %s, path: %s", source, path)
+
+		if source == "" || path == "" {
+			log.Print("missing source or path")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		item := crud.Item{}
+		err := json.NewDecoder(r.Body).Decode(&item)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		result, err := crud.SendToBookmark(item, source, path)
+		log.Println(result)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+	}
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	name := os.Getenv(("NAME"))
 	if name == "" {
