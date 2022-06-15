@@ -84,15 +84,15 @@ func ClearCollection(coll string) int64 {
 	return result.DeletedCount
 }
 
-func GetItems(collectionName string, cursor int64, filter string) ([]Item, error) {
+func GetItems(collectionName string, cursor int64, domain string, path string) ([]Item, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection(collectionName)
 
 	// Set Filter
-	var filterMap bson.M
+	var domainFilterMap bson.M = bson.M{}
 
-	if filter == "etc" {
+	if domain == "etc" {
 		_, groupInfos, err := GetCollectionInfo(collectionName)
 		if err != nil {
 			return nil, err
@@ -104,13 +104,19 @@ func GetItems(collectionName string, cursor int64, filter string) ([]Item, error
 				filterDomain = append(filterDomain, groupInfo.Domain)
 			}
 		}
-		filterMap = bson.M{"domain": bson.M{"$nin": filterDomain}}
-	} else if filter != "" {
-		filterMap = bson.M{"domain": filter}
+		domainFilterMap = bson.M{"domain": bson.M{"$nin": filterDomain}}
+	} else if domain != "" {
+		domainFilterMap["domain"] = domain
 	}
 
+	if path != "" {
+		domainFilterMap["path"] = path
+	}
+
+	fmt.Println(domainFilterMap)
+
 	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetLimit(PAGE_SIZE).SetSkip(cursor)
-	dbCursor, err := coll.Find(context.TODO(), filterMap, findOption)
+	dbCursor, err := coll.Find(context.TODO(), domainFilterMap, findOption)
 	checkError(err)
 
 	// Get Items

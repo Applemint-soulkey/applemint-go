@@ -99,9 +99,10 @@ func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
 		cursor = 0
 	}
 
-	filter := r.URL.Query().Get("filter")
+	domain := r.URL.Query().Get("domain")
+	path := r.URL.Query().Get("path")
 
-	items, err := crud.GetItems(target, int64(cursor), filter)
+	items, err := crud.GetItems(target, int64(cursor), domain, path)
 	if err != nil {
 		fmt.Fprintf(w, `{"Error getting items": "%s"}`, err)
 		return
