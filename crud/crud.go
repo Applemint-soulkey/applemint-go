@@ -3,14 +3,13 @@ package crud
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-const PAGE_SIZE = 10
 
 type GroupInfo struct {
 	Domain string `bson:"_id"`
@@ -61,13 +60,15 @@ func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
 		bytes, _ := bson.Marshal(result)
 		bson.Unmarshal(bytes, &groupInfo)
 		totalCount += groupInfo.Count
-		if groupInfo.Count > 10 {
+		if groupInfo.Count > GROUP_SIZE {
 			groupInfos = append(groupInfos, groupInfo)
 		} else {
 			etcGroupInfo.Count += groupInfo.Count
 		}
 	}
 	groupInfos = append(groupInfos, etcGroupInfo)
+
+	dbclient.Disconnect(context.TODO())
 
 	return totalCount, groupInfos, nil
 }
@@ -78,15 +79,44 @@ func ClearCollection(coll string) int64 {
 	result, err := coll_item.DeleteMany(context.TODO(), bson.M{})
 	checkError(err)
 
+	dbclient.Disconnect(context.TODO())
+
 	return result.DeletedCount
 }
 
-func GetItems(collectionName string, cursor int64) ([]Item, error) {
+func GetItems(collectionName string, cursor int64, domain string, path string) ([]Item, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection(collectionName)
+
+	// Set Filter
+	var domainFilterMap bson.M = bson.M{}
+
+	if domain == "etc" {
+		_, groupInfos, err := GetCollectionInfo(collectionName)
+		if err != nil {
+			return nil, err
+		}
+		var filterDomain []string = make([]string, 0)
+
+		for _, groupInfo := range groupInfos {
+			if groupInfo.Count > GROUP_SIZE {
+				filterDomain = append(filterDomain, groupInfo.Domain)
+			}
+		}
+		domainFilterMap = bson.M{"domain": bson.M{"$nin": filterDomain}}
+	} else if domain != "" {
+		domainFilterMap["domain"] = domain
+	}
+
+	if path != "" {
+		domainFilterMap["path"] = path
+	}
+
+	fmt.Println(domainFilterMap)
+
 	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetLimit(PAGE_SIZE).SetSkip(cursor)
-	dbCursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
+	dbCursor, err := coll.Find(context.TODO(), domainFilterMap, findOption)
 	checkError(err)
 
 	// Get Items
@@ -97,6 +127,8 @@ func GetItems(collectionName string, cursor int64) ([]Item, error) {
 		checkError(err)
 		items = append(items, item)
 	}
+
+	dbclient.Disconnect(context.TODO())
 
 	return items, nil
 }
@@ -120,6 +152,9 @@ func GetItem(itemId string, collectionName string) (Item, error) {
 	// Get
 	item := Item{}
 	err = coll.FindOne(context.TODO(), bson.M{"_id": bsonItemId}).Decode(&item)
+
+	dbclient.Disconnect(context.TODO())
+
 	return item, err
 }
 
@@ -132,6 +167,9 @@ func UpdateItem(itemId string, collectionName string, item Item) int64 {
 	// Update
 	result, err := coll.UpdateOne(context.TODO(), bson.M{"_id": bsonItemId}, bson.M{"$set": item})
 	checkError(err)
+
+	dbclient.Disconnect(context.TODO())
+
 	return result.ModifiedCount
 }
 
@@ -140,6 +178,8 @@ func DeleteItem(itemId string, collectionName string) int64 {
 	if len(itemId) != 24 {
 		return 0
 	}
+
+	fmt.Println(itemId)
 
 	// Connect to DB
 	dbclient := connectDB()
@@ -151,6 +191,8 @@ func DeleteItem(itemId string, collectionName string) int64 {
 	// Delete
 	result, err := dbclient.Database("Item").Collection(collectionName).DeleteOne(context.TODO(), bson.M{"_id": bsonItemId})
 	checkError(err)
+
+	dbclient.Disconnect(context.TODO())
 	return result.DeletedCount
 }
 
@@ -181,6 +223,7 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 		if err != nil {
 			return err
 		}
+
 		_, err = dest_coll.InsertOne(context.TODO(), item)
 		if err != nil {
 			return err
@@ -196,6 +239,8 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 		}
 		return nil
 	})
+
+	dbclient.Disconnect(context.TODO())
 
 	checkError(err)
 	return err

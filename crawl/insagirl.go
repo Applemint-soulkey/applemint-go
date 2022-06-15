@@ -78,6 +78,8 @@ func getIgnoreListFromDB() []string {
 		ignoreList = append(ignoreList, ignore["data"].(string))
 	}
 
+	dbclient.Disconnect(context.TODO())
+
 	return ignoreList
 }
 

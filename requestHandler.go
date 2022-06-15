@@ -20,8 +20,6 @@ func handleCollectionInfoRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Error getting collection info: %s", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -31,8 +29,6 @@ func handleCollectionInfoRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	target := mux.Vars(r)["target"]
 	delCnt := crud.ClearCollection(target)
@@ -44,8 +40,6 @@ func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCrawlRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	switch expression := mux.Vars(r)["target"]; expression {
 	case "bp":
@@ -56,8 +50,6 @@ func handleCrawlRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	target_coll := r.URL.Query().Get("target")
@@ -75,8 +67,6 @@ func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleKeepItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	item := crud.Item{}
@@ -102,15 +92,17 @@ func handleKeepItemRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	target := mux.Vars(r)["collection"]
 	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
 	if err != nil {
 		cursor = 0
 	}
-	items, err := crud.GetItems(target, int64(cursor))
+
+	domain := r.URL.Query().Get("domain")
+	path := r.URL.Query().Get("path")
+
+	items, err := crud.GetItems(target, int64(cursor), domain, path)
 	if err != nil {
 		fmt.Fprintf(w, `{"Error getting items": "%s"}`, err)
 		return
@@ -120,8 +112,7 @@ func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	w.WriteHeader(http.StatusOK)
 	targetId := mux.Vars(r)["id"]
 	targetCollection := mux.Vars(r)["collection"]
@@ -149,8 +140,12 @@ func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	case "DELETE":
 		delCnt := crud.DeleteItem(targetId, targetCollection)
+		fmt.Println("Deleted", delCnt, "items")
 		if delCnt > 0 {
-			fmt.Fprintf(w, "{\"msg\": \"item deleted from %s -> %s\"}", targetCollection, targetId)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"deleted": delCnt,
+			})
+			// fmt.Fprintf(w, "{\"msg\": \"item deleted from %s -> %s\"}", targetCollection, targetId)
 		} else {
 			fmt.Fprintf(w, "{\"error\": \"cannot find item from %s -> %s\"}", targetCollection, targetId)
 		}
@@ -158,9 +153,6 @@ func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("handleDropboxTest")
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	path := r.URL.Query().Get("path")
 	url := r.URL.Query().Get("url")
@@ -176,8 +168,6 @@ func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	collections, err := crud.GetCollectionFromRaindrop()
 	if err != nil {
@@ -189,9 +179,6 @@ func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("handleRaindropRequest")
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	collectionId := mux.Vars(r)["collectionId"]
 	item := crud.Item{}
@@ -212,6 +199,50 @@ func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "%s", string(raindropResp))
+}
+
+func handleBookmarkRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	switch r.Method {
+	case "GET":
+		log.Println("handle bookmark list get")
+		bookmarks, err := crud.GetBookmarkList()
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(bookmarks)
+
+	case "POST":
+		log.Print("handleSendToBookmark")
+		source := r.URL.Query().Get("from")
+		path := r.URL.Query().Get("path")
+		log.Printf("source: %s, path: %s", source, path)
+
+		if source == "" || path == "" {
+			log.Print("missing source or path")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		item := crud.Item{}
+		err := json.NewDecoder(r.Body).Decode(&item)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		result, err := crud.SendToBookmark(item, source, path)
+		log.Println(result)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

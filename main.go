@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
@@ -18,6 +19,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+
 	r.HandleFunc("/", handler)
 	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
 	r.HandleFunc("/item/keep/{id}", handleKeepItemRequest).Methods("POST")
@@ -27,6 +29,8 @@ func main() {
 	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/collection/info/{collection}", handleCollectionInfoRequest).Methods("GET")
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
+
+	r.HandleFunc("/item/bookmark", handleBookmarkRequest).Methods("GET", "POST")
 
 	r.HandleFunc("/dropbox/", handleDropboxRequest).Methods("GET")
 	r.HandleFunc("/raindrop/{collectionId}", handleRaindropRequest).Methods("POST")
@@ -41,9 +45,13 @@ func main() {
 		log.Printf("defaulting to port %s", port)
 	}
 
+	headersOK := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization", "origin", "x-csrftoken", "x-access-token"})
+	originsOK := handlers.AllowedOrigins([]string{"*"})
+	methodsOK := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+
 	// Start HTTP service.
 	log.Printf("listening on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, handlers.CORS(originsOK, headersOK, methodsOK)(r)); err != nil {
 		log.Fatal(err)
 	}
 }
