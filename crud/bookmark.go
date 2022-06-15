@@ -21,8 +21,12 @@ func SendToBookmark(item Item, coll_origin string, path string) (Item, error) {
 	target_id_string := item.ID.Hex()
 	fmt.Println(target_id_string)
 	UpdateItem(target_id_string, coll_origin, item)
-	err := MoveItem(target_id_string, coll_origin, "bookmark")
-	checkError(err)
+
+	if coll_origin != "bookmark" {
+		err := MoveItem(target_id_string, coll_origin, "bookmark")
+		checkError(err)
+	}
+
 	resultItem, err := GetItem(target_id_string, "bookmark")
 	checkError(err)
 
