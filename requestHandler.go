@@ -29,7 +29,12 @@ func handleImgurAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("handleImgurAnalyzeRequest:", images)
 	w.WriteHeader(http.StatusOK)
-	json, err := json.Marshal(images)
+
+	var jsonImages = make(map[string]interface{})
+	jsonImages["images"] = images
+	jsonImages["origin"] = imgurLink
+
+	json, err := json.Marshal(jsonImages)
 	if err != nil {
 		log.Println("handleImgurAnalyzeRequest:", err)
 		w.WriteHeader(http.StatusInternalServerError)
