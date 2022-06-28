@@ -9,6 +9,9 @@ import (
 	"github.com/bobesa/go-domain-util/domainutil"
 )
 
+const BASE_URL_BP = "https://v12.battlepage.com"
+const PAGE_SIZE = 5
+
 func CrawlBP() int {
 	targetList := []string{}
 
@@ -29,7 +32,7 @@ func CrawlBP() int {
 
 	// Insert Items
 	log.Print("Insert Items")
-	insertedCount := InsertItems(items)
+	insertedCount := InsertItems(items, "new")
 
 	return insertedCount
 }

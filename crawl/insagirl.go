@@ -20,6 +20,46 @@ type respType struct {
 	V []string `json:"v"`
 }
 
+func isGalleryItem(item Item) bool {
+	directKeywords := []string{
+		".jpg",
+		".png",
+		".gif",
+		".jpeg",
+		".webp",
+		".bmp",
+		".svg",
+		".mp4",
+		".mp3",
+		".wav",
+		".flac",
+		".ogg",
+		".opus",
+		".aac",
+		".wma",
+		".m4a",
+		".m4v",
+		".3gp",
+		".3g2",
+		".avi",
+		".mov",
+		".mkv",
+		".wmv",
+	}
+
+	if item.Domain == "imgur.com" {
+		return true
+	}
+
+	for _, keyword := range directKeywords {
+		if strings.Contains(item.Url, keyword) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func CrawlISG() int {
 	targetList := []string{
 		"http://insagirl-hrm.appspot.com/json2/1/1/2/",
@@ -27,19 +67,26 @@ func CrawlISG() int {
 	}
 
 	items := []Item{}
+	imageQueueItems := []Item{}
 	// Get Items
 	log.Print("Get Items")
 	for _, targetURL := range targetList {
-		items = append(items, getIsgData(targetURL)...)
+		newItems, imageItems := getIsgData(targetURL)
+		items = append(items, newItems...)
+		imageQueueItems = append(imageQueueItems, imageItems...)
 	}
 
 	log.Print("Insert Items")
-	insertedCount := InsertItems(items)
+	insertedCount := InsertItems(items, "new")
+	log.Printf("Inserted %d Items", insertedCount)
+	log.Print("Insert Image Queue Items")
+	insertedCount = InsertItems(imageQueueItems, "image-queue")
+	log.Printf("Inserted %d Image Queue Items", insertedCount)
 
 	return insertedCount
 }
 
-func getIsgData(url string) []Item {
+func getIsgData(url string) ([]Item, []Item) {
 	resp, err := http.Get(url)
 	checkError(err)
 	checkResponseCode(resp)
@@ -53,14 +100,19 @@ func getIsgData(url string) []Item {
 	ignoreList := getIgnoreListFromDB()
 
 	items := []Item{}
+	imageQueueItems := []Item{}
 	for _, v := range data.V {
 		dataSet := strings.Split(v, "|")
 		item, err := getItemFromRawData(dataSet[2])
 		if !containIgnoreWord(dataSet, ignoreList) && err == nil {
-			items = append(items, item)
+			if isGalleryItem(item) {
+				imageQueueItems = append(imageQueueItems, item)
+			} else {
+				items = append(items, item)
+			}
 		}
 	}
-	return items
+	return items, imageQueueItems
 }
 
 func getIgnoreListFromDB() []string {
@@ -107,7 +159,6 @@ func getItemFromRawData(rawString string) (Item, error) {
 	rx := xurls.Strict()
 	matches := rx.FindAllString(rawString, -1)
 	if len(matches) == 0 {
-		log.Println(rawString)
 		return item, errors.New("no url found")
 	}
 	for _, match := range matches {
