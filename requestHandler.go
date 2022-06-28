@@ -13,6 +13,31 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func handleImgurAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
+	log.Println("handleImgurAnalyzeRequest:", r.URL.Path)
+	imgurLink := r.URL.Query().Get("link")
+	if imgurLink == "" {
+		log.Println("handleImgurAnalyzeRequest: missing link")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	images, err := crawl.HandleImgurLink(imgurLink)
+	if err != nil {
+		log.Println("handleImgurAnalyzeRequest:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	log.Println("handleImgurAnalyzeRequest:", images)
+	w.WriteHeader(http.StatusOK)
+	json, err := json.Marshal(images)
+	if err != nil {
+		log.Println("handleImgurAnalyzeRequest:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(json)
+}
+
 func handleCollectionInfoRequest(w http.ResponseWriter, r *http.Request) {
 	collection := mux.Vars(r)["collection"]
 	totalCount, GroupInfos, err := crud.GetCollectionInfo(collection)
