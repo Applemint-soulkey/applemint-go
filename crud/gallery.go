@@ -12,16 +12,16 @@ import (
 type GalleryItem struct {
 	ID        primitive.ObjectID `bson:"_id" json:"id"`
 	Text      string             `json:"text" bson:"text"`
-	Url       string             `json:"url" bson:"url"`
+	Link      string             `json:"link" bson:"link"`
 	Origin    string             `json:"origin" bson:"origin"`
-	Timestamp time.Time          `json:"timestamp" bson:"timestamp"`
+	CreatedAt time.Time          `json:"createdAt" bson:"createdAt"`
 }
 
 func GetGalleryItems(cursor int64) ([]GalleryItem, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection("gallery")
-	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetSkip(cursor).SetLimit(PAGE_SIZE)
+	findOption := options.Find().SetSort(bson.M{"createdAt": -1}).SetSort(bson.M{"_id": -1}).SetSkip(cursor).SetLimit(PAGE_SIZE)
 	dbCursor, err := coll.Find(context.TODO(), bson.M{}, findOption)
 	if err != nil {
 		return nil, err
