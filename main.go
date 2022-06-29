@@ -21,19 +21,28 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", handler)
+
+	// CRUD API for item
 	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
 	r.HandleFunc("/item/keep/{id}", handleKeepItemRequest).Methods("POST")
 	r.HandleFunc("/item/{collection}/{id}", handleItemRequest).Methods("GET", "POST", "DELETE")
 	r.HandleFunc("/items/{collection}", handleItemsRequest).Methods("GET")
 
+	// Collection Info API
 	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/collection/info/{collection}", handleCollectionInfoRequest).Methods("GET")
+
+	// Crawl API
 	r.HandleFunc("/crawl/{target}", handleCrawlRequest).Methods("GET")
 
+	// Bookmark API
 	r.HandleFunc("/item/bookmark", handleBookmarkRequest).Methods("GET", "POST")
 
+	// Gallery API
 	r.HandleFunc("/gallery/imgur", handleImgurAnalyzeRequest).Methods("GET")
+	r.HandleFunc("/gallery", handleGalleryRequest).Methods("GET")
 
+	// External App API
 	r.HandleFunc("/dropbox/", handleDropboxRequest).Methods("GET")
 	r.HandleFunc("/raindrop/{collectionId}", handleRaindropRequest).Methods("POST")
 	r.HandleFunc("/raindrop/collections", handleRaindropCollectionRequest).Methods("GET")

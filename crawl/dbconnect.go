@@ -63,9 +63,9 @@ func makeBsonSet(item []Item) []interface{} {
 	return bsonSet
 }
 
-func InsertItems(items []Item) int {
+func InsertItems(items []Item, targetCollectionName string) int {
 	dbclient := ConnectDB()
-	coll_new := dbclient.Database("Item").Collection("new")
+	coll_new := dbclient.Database("Item").Collection(targetCollectionName)
 	coll_history := dbclient.Database("Item").Collection("history")
 	filtered := filterItems(dbclient, items)
 	itemBsonSet := makeBsonSet(filtered)
