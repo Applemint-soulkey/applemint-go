@@ -13,6 +13,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func handleGalleryRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
+	if err != nil {
+		cursor = 0
+	}
+	items, err := crud.GetGalleryItems(int64(cursor))
+
+	if err != nil {
+		fmt.Fprintf(w, `{"Error getting gallery items": "%s"}`, err)
+		return
+	}
+	json.NewEncoder(w).Encode(items)
+}
+
 func handleImgurAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
 	log.Println("handleImgurAnalyzeRequest:", r.URL.Path)
 	imgurLink := r.URL.Query().Get("link")
