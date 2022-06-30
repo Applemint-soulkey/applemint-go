@@ -19,13 +19,13 @@ func handleGalleryRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		cursor = 0
 	}
-	items, err := crud.GetGalleryItems(int64(cursor))
+	galleryData, err := crud.GetGalleryItems(int64(cursor))
 
 	if err != nil {
 		fmt.Fprintf(w, `{"Error getting gallery items": "%s"}`, err)
 		return
 	}
-	json.NewEncoder(w).Encode(items)
+	json.NewEncoder(w).Encode(galleryData)
 }
 
 func handleImgurAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
@@ -205,11 +205,15 @@ func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Missing parameters")
 		return
 	}
-	err := crud.SendToDropbox(path, url)
+	log.Println("Dropbox request:", path, url)
+	asyncJobId, err := crud.SendToDropbox(path, url)
 	if err != nil {
 		fmt.Fprintf(w, "Error sending to dropbox: %s", err)
 		return
 	}
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"jobId": asyncJobId,
+	})
 }
 
 func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {

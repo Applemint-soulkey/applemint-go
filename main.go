@@ -43,7 +43,7 @@ func main() {
 	r.HandleFunc("/gallery", handleGalleryRequest).Methods("GET")
 
 	// External App API
-	r.HandleFunc("/dropbox/", handleDropboxRequest).Methods("GET")
+	r.HandleFunc("/dropbox", handleDropboxRequest).Methods("GET")
 	r.HandleFunc("/raindrop/{collectionId}", handleRaindropRequest).Methods("POST")
 	r.HandleFunc("/raindrop/collections", handleRaindropCollectionRequest).Methods("GET")
 
