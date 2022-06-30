@@ -17,7 +17,7 @@ type GalleryItem struct {
 	CreatedAt time.Time          `json:"createdAt" bson:"createdAt"`
 }
 
-func GetGalleryItems(cursor int64) ([]GalleryItem, error) {
+func GetGalleryItems(cursor int64) (map[string]interface{}, error) {
 	// Connect to DB
 	dbclient := connectDB()
 	coll := dbclient.Database("Item").Collection("gallery")
@@ -37,7 +37,20 @@ func GetGalleryItems(cursor int64) ([]GalleryItem, error) {
 		}
 		items = append(items, item)
 	}
+
+	// Get Items Count
+	count, err := coll.CountDocuments(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Make Response
+	response := make(map[string]interface{})
+	response["items"] = items
+	response["count"] = count
+	response["cursor"] = cursor
+
 	dbclient.Disconnect(context.TODO())
 
-	return items, nil
+	return response, nil
 }

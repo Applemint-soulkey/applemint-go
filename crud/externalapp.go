@@ -16,14 +16,15 @@ import (
 )
 
 const raindropEndPoint = "https://api.raindrop.io"
-const raindropAPI = "/rest/v1/raindrop"
 const collectionAPI = "/rest/v1/collections"
 
-func SendToDropbox(path string, url string) error {
+//const raindropAPI = "/rest/v1/raindrop"
+
+func SendToDropbox(path string, url string) (string, error) {
 	// connect to dropbox
 	access_token := os.Getenv("ENV_DROPBOX_ACCESS_TOKEN")
 	if access_token == "" {
-		return errors.New("env_dropbox_access_token not set")
+		return "", errors.New("env_dropbox_access_token not set")
 	}
 
 	config := dropbox.Config{
@@ -33,9 +34,13 @@ func SendToDropbox(path string, url string) error {
 	dbx := files.New(config)
 	arg := files.NewSaveUrlArg(path, url)
 	result, err := dbx.SaveUrl(arg)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
 	log.Println(result)
 
-	return err
+	return result.AsyncJobId, err
 }
 
 func GetCollectionFromRaindrop() ([]byte, error) {
