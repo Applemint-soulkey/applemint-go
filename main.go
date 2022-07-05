@@ -29,6 +29,7 @@ func main() {
 	r.HandleFunc("/items/{collection}", handleItemsRequest).Methods("GET")
 
 	// Collection Info API
+	r.HandleFunc("/collection", handleCollectionRequest).Methods("GET")
 	r.HandleFunc("/collection/{target}", handleClearCollectionRequest).Methods("DELETE")
 	r.HandleFunc("/collection/info/{collection}", handleCollectionInfoRequest).Methods("GET")
 
