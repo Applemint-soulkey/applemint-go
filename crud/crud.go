@@ -16,6 +16,18 @@ type GroupInfo struct {
 	Count  int64  `bson:"count"`
 }
 
+func GetCollectionList() ([]string, error) {
+	// Connect to DB
+	dbclient := connectDB()
+	db := dbclient.Database("Item")
+	collection_list, err := db.ListCollectionNames(context.TODO(), bson.M{})
+	checkError(err)
+
+	dbclient.Disconnect(context.TODO())
+
+	return collection_list, nil
+}
+
 func GetCollectionInfo(collectionName string) (int64, []GroupInfo, error) {
 	// Connect to DB
 	dbclient := connectDB()

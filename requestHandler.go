@@ -58,6 +58,19 @@ func handleImgurAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+func handleCollectionRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	items, err := crud.GetCollectionList()
+	if err != nil {
+		fmt.Fprintf(w, "Error getting collection: %s", err)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"collections": items,
+		"count":       len(items),
+	})
+}
+
 func handleCollectionInfoRequest(w http.ResponseWriter, r *http.Request) {
 	collection := mux.Vars(r)["collection"]
 	totalCount, GroupInfos, err := crud.GetCollectionInfo(collection)
