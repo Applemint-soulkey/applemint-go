@@ -1,7 +1,9 @@
 package crawl
 
 import (
+	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -46,9 +48,14 @@ func getItemsFromBP(doc *goquery.Document) []Item {
 }
 
 func getItemFromBP(doc *goquery.Selection) Item {
+	regexpPage := regexp.MustCompile(`&page=[0-9]`)
+
 	item := Item{}
 	item.TextContent, _ = doc.Find(".bp_subject").Attr("title")
 	itemLink, _ := doc.Find("a").Attr("href")
+	fmt.Println(itemLink)
+	itemLink = regexpPage.ReplaceAllLiteralString(itemLink, "")
+	fmt.Println(itemLink)
 	item.Url = BASE_URL_BP + itemLink
 	item.Domain = domainutil.Domain(item.Url)
 	item.Tags = []string{}
