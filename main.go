@@ -27,6 +27,7 @@ func main() {
 	r.HandleFunc("/item/keep/{id}", handleKeepItemRequest).Methods("POST")
 	r.HandleFunc("/item/{collection}/{id}", handleItemRequest).Methods("GET", "POST", "DELETE")
 	r.HandleFunc("/items/{collection}", handleItemsRequest).Methods("GET")
+	r.HandleFunc("/item/clean", handleClearOldItemsRequest).Methods("GET")
 
 	// Collection Info API
 	r.HandleFunc("/collection", handleCollectionRequest).Methods("GET")
