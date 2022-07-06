@@ -13,6 +13,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func handleClearOldItemsRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	crawl.ClearOldData("trash")
+	crawl.ClearOldData("image-queue")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Old items clear process started",
+	})
+}
+
 func handleGalleryRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
