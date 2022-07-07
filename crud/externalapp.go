@@ -59,7 +59,7 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 	defer resp.Body.Close()
 
 	var rawData map[string]interface{}
-	fmt.Println("response Status:", resp.Status)
+	log.Println("response Status:", resp.Status)
 	body, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &rawData)
 	if err != nil {
@@ -115,7 +115,7 @@ func SendToRaindrop(item Item, collection string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Status:", resp.Status)
+	log.Println("response Status:", resp.Status)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)

@@ -20,8 +20,6 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", handler)
-
 	// CRUD API for item
 	r.HandleFunc("/item/move/{id}", handleMoveItemRequest).Methods("GET")
 	r.HandleFunc("/item/keep/{id}", handleKeepItemRequest).Methods("POST")

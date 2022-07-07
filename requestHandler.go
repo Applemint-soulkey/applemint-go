@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -207,7 +206,7 @@ func handleItemRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	case "DELETE":
 		delCnt := crud.DeleteItem(targetId, targetCollection)
-		fmt.Println("Deleted", delCnt, "items")
+		log.Printf("Deleted %d items from collection %s", delCnt, targetCollection)
 		if delCnt > 0 {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"deleted": delCnt,
@@ -314,12 +313,4 @@ func handleBookmarkRequest(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 	}
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	name := os.Getenv(("NAME"))
-	if name == "" {
-		name = "World"
-	}
-	fmt.Fprintf(w, "Hello %s!", name)
 }

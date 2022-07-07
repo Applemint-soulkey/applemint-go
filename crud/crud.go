@@ -3,7 +3,7 @@ package crud
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -125,10 +125,11 @@ func GetItems(collectionName string, cursor int64, domain string, path string) (
 		domainFilterMap["path"] = path
 	}
 
-	fmt.Println(domainFilterMap)
+	log.Println(domainFilterMap)
 
 	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetLimit(PAGE_SIZE).SetSkip(cursor)
 	dbCursor, err := coll.Find(context.TODO(), domainFilterMap, findOption)
+
 	checkError(err)
 
 	// Get Items
@@ -191,7 +192,7 @@ func DeleteItem(itemId string, collectionName string) int64 {
 		return 0
 	}
 
-	fmt.Println(itemId)
+	log.Println("DeleteItem: " + itemId)
 
 	// Connect to DB
 	dbclient := connectDB()
