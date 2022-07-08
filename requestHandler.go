@@ -3,314 +3,244 @@ package main
 import (
 	"applemint-go/crawl"
 	"applemint-go/crud"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-func handleClearOldItemsRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	crawl.ClearOldData("trash")
-	crawl.ClearOldData("image-queue")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Old items clear process started",
+func moveItemRequestHandler(ctx *gin.Context) {
+	id := ctx.Param("id")
+	target := ctx.Query("target")
+	origin := ctx.Query("origin")
+	log.Printf("move item %s from %s to %s", id, origin, target)
+	if target == "" || origin == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing target or origin"})
+		return
+	}
+	err := crud.MoveItem(id, origin, target)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"id":     id,
+		"target": target,
+		"origin": origin,
 	})
 }
 
-func handleGalleryRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
+func getItemRequestHandler(ctx *gin.Context) {
+	id := ctx.Param("id")
+	collection := ctx.Param("collection")
+	item, err := crud.GetItem(id, collection)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, item)
+}
+
+func updateItemReqeustHandler(ctx *gin.Context) {
+	collection := ctx.Param("collection")
+	id := ctx.Param("id")
+	item := crud.Item{}
+	err := ctx.BindJSON(&item)
+	if collection == "" || id == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing collection or id"})
+		return
+	}
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	updateCnt := crud.UpdateItem(id, collection, item)
+	if updateCnt > 0 {
+		ctx.JSON(http.StatusOK, gin.H{"updated": updateCnt})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"updated": 0})
+	}
+}
+
+func deleteItemRequestHandler(ctx *gin.Context) {
+	id := ctx.Param("id")
+	collection := ctx.Param("collection")
+	deleteCnt := crud.DeleteItem(id, collection)
+	log.Printf("Deleted %d items from collection %s", deleteCnt, collection)
+	if deleteCnt > 0 {
+		ctx.JSON(http.StatusOK, gin.H{"deleted": deleteCnt})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"deleted": 0})
+	}
+}
+
+func getBookmarkListRequestHandler(ctx *gin.Context) {
+	log.Print("get bookmark list")
+	bookmarkList, err := crud.GetBookmarkList()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, bookmarkList)
+}
+
+func makeBookmarkRequestHander(ctx *gin.Context) {
+	log.Print("make bookmark")
+	item := crud.Item{}
+	origin := ctx.Query("from")
+	path := ctx.Query("path")
+	err := ctx.BindJSON(&item)
+	if origin == "" || path == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing origin or path"})
+		return
+	}
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	result, err := crud.SendToBookmark(item, origin, path)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, result)
+}
+
+func getItemListRequestHandler(ctx *gin.Context) {
+	collection := ctx.Param("target")
+	cursor, err := strconv.Atoi(ctx.Query("cursor"))
 	if err != nil {
 		cursor = 0
 	}
-	galleryData, err := crud.GetGalleryItems(int64(cursor))
+	domain := ctx.Query("domain")
+	path := ctx.Query("path")
 
+	items, err := crud.GetItems(collection, int64(cursor), domain, path)
 	if err != nil {
-		fmt.Fprintf(w, `{"Error getting gallery items": "%s"}`, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	json.NewEncoder(w).Encode(galleryData)
+	ctx.JSON(http.StatusOK, items)
 }
 
-func handleImgurAnalyzeRequest(w http.ResponseWriter, r *http.Request) {
-	log.Println("handleImgurAnalyzeRequest:", r.URL.Path)
-	imgurLink := r.URL.Query().Get("link")
-	if imgurLink == "" {
-		log.Println("handleImgurAnalyzeRequest: missing link")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	images, err := crawl.HandleImgurLink(imgurLink)
+func getCollectionListRequestHandler(ctx *gin.Context) {
+	collections, err := crud.GetCollectionList()
 	if err != nil {
-		log.Println("handleImgurAnalyzeRequest:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	log.Println("handleImgurAnalyzeRequest:", images)
-	w.WriteHeader(http.StatusOK)
-
-	var jsonImages = make(map[string]interface{})
-	jsonImages["images"] = images
-	jsonImages["origin"] = imgurLink
-
-	json, err := json.Marshal(jsonImages)
-	if err != nil {
-		log.Println("handleImgurAnalyzeRequest:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write(json)
+	ctx.JSON(http.StatusOK, collections)
 }
 
-func handleCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	items, err := crud.GetCollectionList()
-	if err != nil {
-		fmt.Fprintf(w, "Error getting collection: %s", err)
-		return
-	}
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"collections": items,
-		"count":       len(items),
-	})
+func cleanOldItemsRequestHandler(ctx *gin.Context) {
+	crawl.ClearOldData("trash")
+	crawl.ClearOldData("image-queue")
+	ctx.JSON(http.StatusOK, gin.H{"message": "old time cleaner launched"})
 }
 
-func handleCollectionInfoRequest(w http.ResponseWriter, r *http.Request) {
-	collection := mux.Vars(r)["collection"]
+func getCollectionInfoRequestHandler(ctx *gin.Context) {
+	collection := ctx.Param("target")
 	totalCount, GroupInfos, err := crud.GetCollectionInfo(collection)
 	if err != nil {
-		fmt.Fprintf(w, "Error getting collection info: %s", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	ctx.JSON(http.StatusOK, gin.H{
 		"totalCount": totalCount,
 		"groupInfos": GroupInfos,
 	})
 }
 
-func handleClearCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	target := mux.Vars(r)["target"]
-	delCnt := crud.ClearCollection(target)
-	if delCnt > 0 {
-		fmt.Fprintf(w, "Deleted %d items from collection %s", delCnt, target)
-	} else {
-		fmt.Fprintf(w, "Collection %s is empty", target)
-	}
+func clearCollectionRequestHandler(ctx *gin.Context) {
+	collection := ctx.Param("target")
+	delCount := crud.ClearCollection(collection)
+	ctx.JSON(http.StatusOK, gin.H{"deleted": delCount})
 }
 
-func handleCrawlRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	switch expression := mux.Vars(r)["target"]; expression {
+func crawlRequestHandler(ctx *gin.Context) {
+	target := ctx.Param("target")
+	resultCount := 0
+	switch target {
 	case "bp":
-		json.NewEncoder(w).Encode(crawl.CrawlBP())
+		resultCount = crawl.CrawlBP()
 	case "isg":
-		json.NewEncoder(w).Encode(crawl.CrawlISG())
+		resultCount = crawl.CrawlISG()
 	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "crawl launched", "resultCount": resultCount})
 }
 
-func handleMoveItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	targetId := mux.Vars(r)["id"]
-	target_coll := r.URL.Query().Get("target")
-	origin_coll := r.URL.Query().Get("origin")
-	if target_coll == "" || origin_coll == "" {
-		fmt.Fprintf(w, "Missing parameters")
-		return
-	}
-	err := crud.MoveItem(targetId, origin_coll, target_coll)
-	if err != nil {
-		fmt.Fprintf(w, "Error moving item: %s", err)
-		return
-	}
-	fmt.Fprintf(w, "Item moved from %s to %s", origin_coll, target_coll)
-}
-
-func handleKeepItemRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	targetId := mux.Vars(r)["id"]
-	item := crud.Item{}
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		fmt.Fprintf(w, "Error decoding item: %s", err)
-		return
-	}
-	updateCnt := crud.UpdateItem(targetId, "new", item)
-	if updateCnt > 0 {
-		fmt.Fprintf(w, "Updated %d items\n", updateCnt)
-	} else {
-		fmt.Fprintf(w, "No items updated")
-		return
-	}
-	err = crud.MoveItem(targetId, "new", "keep")
-	if err != nil {
-		fmt.Fprintf(w, "Error moving item: %s", err)
-		return
-	}
-
-	fmt.Fprintf(w, "Updated Item moved from new to keep")
-}
-
-func handleItemsRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	target := mux.Vars(r)["collection"]
-	cursor, err := strconv.Atoi(r.URL.Query().Get("cursor"))
+func getGalleryItemsRequestHandler(ctx *gin.Context) {
+	cursor, err := strconv.Atoi(ctx.Query("cursor"))
 	if err != nil {
 		cursor = 0
 	}
-
-	domain := r.URL.Query().Get("domain")
-	path := r.URL.Query().Get("path")
-
-	items, err := crud.GetItems(target, int64(cursor), domain, path)
+	items, err := crud.GetGalleryItems(int64(cursor))
 	if err != nil {
-		fmt.Fprintf(w, `{"Error getting items": "%s"}`, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	json.NewEncoder(w).Encode(items)
+	ctx.JSON(http.StatusOK, items)
 }
 
-func handleItemRequest(w http.ResponseWriter, r *http.Request) {
-
-	w.WriteHeader(http.StatusOK)
-	targetId := mux.Vars(r)["id"]
-	targetCollection := mux.Vars(r)["collection"]
-	switch r.Method {
-	case "GET":
-		item, err := crud.GetItem(targetId, targetCollection)
-		if err != nil {
-			fmt.Fprintf(w, "Error getting item: %s", err)
-			return
-		}
-		json.NewEncoder(w).Encode(item)
-
-	case "POST":
-		item := crud.Item{}
-		err := json.NewDecoder(r.Body).Decode(&item)
-		if err != nil {
-			fmt.Fprintf(w, "Error decoding item: %s", err)
-			return
-		}
-		updateCnt := crud.UpdateItem(targetId, targetCollection, item)
-		if updateCnt > 0 {
-			fmt.Fprintf(w, "Updated %d items from collection %s", updateCnt, targetCollection)
-		} else {
-			fmt.Fprintf(w, "Collection %s is empty", targetCollection)
-		}
-	case "DELETE":
-		delCnt := crud.DeleteItem(targetId, targetCollection)
-		log.Printf("Deleted %d items from collection %s", delCnt, targetCollection)
-		if delCnt > 0 {
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"deleted": delCnt,
-			})
-			// fmt.Fprintf(w, "{\"msg\": \"item deleted from %s -> %s\"}", targetCollection, targetId)
-		} else {
-			fmt.Fprintf(w, "{\"error\": \"cannot find item from %s -> %s\"}", targetCollection, targetId)
-		}
+func analyzeImgurRequestHandler(ctx *gin.Context) {
+	imgurLink := ctx.Query("link")
+	if imgurLink == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing link"})
+		return
 	}
+	log.Printf("analyze imgur to get image info: %s", imgurLink)
+	imageInfoList, err := crawl.HandleImgurLink(imgurLink)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, imageInfoList)
 }
 
-func handleDropboxRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	path := r.URL.Query().Get("path")
-	url := r.URL.Query().Get("url")
+func dropboxRequestHandler(ctx *gin.Context) {
+	path := ctx.Query("path")
+	url := ctx.Query("url")
 	if path == "" || url == "" {
-		fmt.Fprintf(w, "Missing parameters")
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing path or url"})
 		return
 	}
-	log.Println("Dropbox request:", path, url)
+	log.Printf("dropbox request: %s", path)
 	asyncJobId, err := crud.SendToDropbox(path, url)
 	if err != nil {
-		fmt.Fprintf(w, "Error sending to dropbox: %s", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"jobId": asyncJobId,
-	})
+	ctx.JSON(http.StatusOK, gin.H{"asyncJobId": asyncJobId})
 }
 
-func handleRaindropCollectionRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+func getRaindropCollectionListRequestHandler(ctx *gin.Context) {
 	collections, err := crud.GetCollectionFromRaindrop()
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Fprintf(w, "%s", string(collections))
+	ctx.JSON(http.StatusOK, collections)
 }
 
-func handleRaindropRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	collectionId := mux.Vars(r)["collectionId"]
-	item := crud.Item{}
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+func sendToRaindropRequestHandler(ctx *gin.Context) {
+	collectionId := ctx.Query("collectionId")
+	if collectionId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing collectionId"})
 		return
 	}
-	if collectionId == "" {
-		fmt.Fprintf(w, "Missing parameters")
+	log.Printf("send to raindrop: %s", collectionId)
+	item := crud.Item{}
+	err := ctx.BindJSON(&item)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	raindropResp, err := crud.SendToRaindrop(item, collectionId)
 	if err != nil {
-		fmt.Fprintf(w, "Error sending to raindrop: %s", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Fprintf(w, "%s", string(raindropResp))
-}
-
-func handleBookmarkRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	switch r.Method {
-	case "GET":
-		log.Println("handle bookmark list get")
-		bookmarks, err := crud.GetBookmarkList()
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		json.NewEncoder(w).Encode(bookmarks)
-
-	case "POST":
-		log.Print("handleSendToBookmark")
-		source := r.URL.Query().Get("from")
-		path := r.URL.Query().Get("path")
-		log.Printf("source: %s, path: %s", source, path)
-
-		if source == "" || path == "" {
-			log.Print("missing source or path")
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		item := crud.Item{}
-		err := json.NewDecoder(r.Body).Decode(&item)
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		result, err := crud.SendToBookmark(item, source, path)
-		log.Println(result)
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
-	}
+	ctx.JSON(http.StatusOK, raindropResp)
 }
