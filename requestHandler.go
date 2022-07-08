@@ -290,7 +290,7 @@ func getRaindropCollectionListRequestHandler(ctx *gin.Context) {
 }
 
 func sendToRaindropRequestHandler(ctx *gin.Context) {
-	collectionId := ctx.Query("collectionId")
+	collectionId := ctx.Param("collectionId")
 	if collectionId == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing collectionId"})
 		return
