@@ -2,7 +2,6 @@ package crud
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,7 +18,7 @@ func SendToBookmark(item Item, coll_origin string, path string) (Item, error) {
 	log.Print("SendToBookmark")
 	item.Path = path
 	target_id_string := item.ID.Hex()
-	fmt.Println(target_id_string)
+	log.Print("target_id_string: " + target_id_string)
 	UpdateItem(target_id_string, coll_origin, item)
 
 	if coll_origin != "bookmark" {

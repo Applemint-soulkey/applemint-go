@@ -43,7 +43,7 @@ func SendToDropbox(path string, url string) (string, error) {
 	return result.AsyncJobId, err
 }
 
-func GetCollectionFromRaindrop() ([]byte, error) {
+func GetCollectionFromRaindrop() ([]map[string]interface{}, error) {
 	// connect to raindrop
 	log.Print("GetCollectionFromRaindrop")
 	req, err := http.NewRequest("GET", raindropEndPoint+collectionAPI, nil)
@@ -59,7 +59,7 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 	defer resp.Body.Close()
 
 	var rawData map[string]interface{}
-	fmt.Println("response Status:", resp.Status)
+	log.Println("response Status:", resp.Status)
 	body, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &rawData)
 	if err != nil {
@@ -77,12 +77,7 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 		resultItem["title"] = itemRawMap["title"]
 		collections = append(collections, resultItem)
 	}
-	b, err := json.Marshal(collections)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, err
+	return collections, nil
 }
 
 func SendToRaindrop(item Item, collection string) ([]byte, error) {
@@ -115,7 +110,7 @@ func SendToRaindrop(item Item, collection string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Status:", resp.Status)
+	log.Println("response Status:", resp.Status)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
