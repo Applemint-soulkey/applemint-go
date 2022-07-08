@@ -43,7 +43,7 @@ func SendToDropbox(path string, url string) (string, error) {
 	return result.AsyncJobId, err
 }
 
-func GetCollectionFromRaindrop() ([]byte, error) {
+func GetCollectionFromRaindrop() ([]map[string]interface{}, error) {
 	// connect to raindrop
 	log.Print("GetCollectionFromRaindrop")
 	req, err := http.NewRequest("GET", raindropEndPoint+collectionAPI, nil)
@@ -77,12 +77,7 @@ func GetCollectionFromRaindrop() ([]byte, error) {
 		resultItem["title"] = itemRawMap["title"]
 		collections = append(collections, resultItem)
 	}
-	b, err := json.Marshal(collections)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, err
+	return collections, nil
 }
 
 func SendToRaindrop(item Item, collection string) ([]byte, error) {
