@@ -10,71 +10,137 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type MessageModel struct {
+	Type    string `json:"type"`
+	Message string `json:"message"`
+}
+
+// moveItemRequestHandler godoc
+// @Summary Move Item
+// @Description Move Item via Collections
+// @name Move Item
+// @Tags Item
+// @Accept json
+// @Produce json
+// @Param id path string true "Item ID"
+// @Param target query string true "Target Collection"
+// @Param origin query string true "Origin Collection"
+// @Success 200 {object} MessageModel
+// @Failure 400 {object} MessageModel
+// @Failure 500 {object} MessageModel
+// @Router /item/move/{id} [get]
 func moveItemRequestHandler(ctx *gin.Context) {
 	id := ctx.Param("id")
 	target := ctx.Query("target")
 	origin := ctx.Query("origin")
 	log.Printf("move item %s from %s to %s", id, origin, target)
 	if target == "" || origin == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing target or origin"})
+		ctx.JSON(http.StatusBadRequest, MessageModel{Type: "error", Message: "missing target or origin"})
 		return
 	}
 	err := crud.MoveItem(id, origin, target)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, MessageModel{Type: "error", Message: err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"id":     id,
-		"target": target,
-		"origin": origin,
-	})
+	ctx.JSON(http.StatusOK, MessageModel{Type: "success", Message: "item " + id + " moved from " + origin + " to " + target})
 }
 
+// getItemRequestHandler godoc
+// @Summary Get Item
+// @Description Get Item
+// @name Get Item
+// @Tags Item
+// @Accept json
+// @Produce json
+// @Param id path string true "Item ID"
+// @Param collection path string true "Collection"
+// @Success 200 {object} crud.Item
+// @Failure 400 {object} MessageModel
+// @Failure 500 {object} MessageModel
+// @Router /item/{id}/{collection} [get]
 func getItemRequestHandler(ctx *gin.Context) {
 	id := ctx.Param("id")
 	collection := ctx.Param("collection")
 	item, err := crud.GetItem(id, collection)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, MessageModel{Type: "error", Message: err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, item)
 }
 
+//updateItemRequestHandler godoc
+// @Summary Update Item
+// @Description Update Item
+// @name Update Item
+// @Tags Item
+// @Accept json
+// @Produce json
+// @Param id path string true "Item ID"
+// @Param collection path string true "Collection"
+// @Param item body crud.Item true "Item"
+// @Success 200 {object} crud.Item
+// @Failure 400 {object} MessageModel
+// @Failure 500 {object} MessageModel
+// @Router /item/{id}/{collection} [put]
 func updateItemReqeustHandler(ctx *gin.Context) {
 	collection := ctx.Param("collection")
 	id := ctx.Param("id")
 	item := crud.Item{}
 	err := ctx.BindJSON(&item)
 	if collection == "" || id == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing collection or id"})
+		ctx.JSON(http.StatusBadRequest, MessageModel{Type: "error", Message: "missing collection or id"})
 		return
 	}
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, MessageModel{Type: "error", Message: err.Error()})
 		return
 	}
 	updateCnt := crud.UpdateItem(id, collection, item)
 	if updateCnt > 0 {
-		ctx.JSON(http.StatusOK, gin.H{"updated": updateCnt})
+		ctx.JSON(http.StatusOK, MessageModel{Type: "success", Message: "item " + id + " updated in " + collection})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"updated": 0})
+		ctx.JSON(http.StatusOK, MessageModel{Type: "error", Message: "item " + id + " not found in " + collection})
 	}
 }
 
+// deleteItemRequestHandler godoc
+// @Summary Delete Item
+// @Description Delete Item
+// @name Delete Item
+// @Tags Item
+// @Accept json
+// @Produce json
+// @Param id path string true "Item ID"
+// @Param collection path string true "Collection"
+// @Success 200 {object} MessageModel
+// @Failure 400 {object} MessageModel
+// @Failure 500 {object} MessageModel
+// @Router /item/{id}/{collection} [delete]
 func deleteItemRequestHandler(ctx *gin.Context) {
 	id := ctx.Param("id")
 	collection := ctx.Param("collection")
 	deleteCnt := crud.DeleteItem(id, collection)
 	log.Printf("Deleted %d items from collection %s", deleteCnt, collection)
 	if deleteCnt > 0 {
-		ctx.JSON(http.StatusOK, gin.H{"deleted": deleteCnt})
+		ctx.JSON(http.StatusOK, MessageModel{Type: "success", Message: "item " + id + " deleted from " + collection})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"deleted": 0})
+		ctx.JSON(http.StatusOK, MessageModel{Type: "error", Message: "item " + id + " not found in " + collection})
 	}
 }
 
+// getBookmarkListRequestHandler godoc
+// @Summary Get Bookmark List
+// @Description Get Bookmark List
+// @name Get Bookmark List
+// @Tags Bookmark
+// @Accept json
+// @Produce json
+// @Success 200 {object} []crud.BookmarkInfo
+// @Failure 400 {object} MessageModel
+// @Failure 500 {object} MessageModel
+// @Router /bookmark [get]
 func getBookmarkListRequestHandler(ctx *gin.Context) {
 	log.Print("get bookmark list")
 	bookmarkList, err := crud.GetBookmarkList()

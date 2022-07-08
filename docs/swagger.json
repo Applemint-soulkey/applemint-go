@@ -3,5 +3,316 @@
     "info": {
         "contact": {}
     },
-    "paths": {}
+    "paths": {
+        "/bookmark": {
+            "get": {
+                "description": "Get Bookmark List",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Get Bookmark List",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/crud.BookmarkInfo"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/move/{id}": {
+            "get": {
+                "description": "Move Item via Collections",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Move Item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target Collection",
+                        "name": "target",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Origin Collection",
+                        "name": "origin",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/item/{id}/{collection}": {
+            "get": {
+                "description": "Get Item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Get Item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Collection",
+                        "name": "collection",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/crud.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Update Item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Collection",
+                        "name": "collection",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Item",
+                        "name": "item",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/crud.Item"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/crud.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Item"
+                ],
+                "summary": "Delete Item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Collection",
+                        "name": "collection",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.MessageModel"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "crud.BookmarkInfo": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "crud.Item": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "text_content": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.MessageModel": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }

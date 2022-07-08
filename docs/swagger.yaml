@@ -1,4 +1,210 @@
+definitions:
+  crud.BookmarkInfo:
+    properties:
+      count:
+        type: integer
+      path:
+        type: string
+    type: object
+  crud.Item:
+    properties:
+      domain:
+        type: string
+      id:
+        type: string
+      path:
+        type: string
+      source:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      text_content:
+        type: string
+      timestamp:
+        type: string
+      url:
+        type: string
+    type: object
+  main.MessageModel:
+    properties:
+      message:
+        type: string
+      type:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /bookmark:
+    get:
+      consumes:
+      - application/json
+      description: Get Bookmark List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/crud.BookmarkInfo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Bookmark List
+      tags:
+      - Item
+  /item/{id}/{collection}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Item
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection
+        in: path
+        name: collection
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Delete Item
+      tags:
+      - Item
+    get:
+      consumes:
+      - application/json
+      description: Get Item
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection
+        in: path
+        name: collection
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crud.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Item
+      tags:
+      - Item
+    put:
+      consumes:
+      - application/json
+      description: Update Item
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Collection
+        in: path
+        name: collection
+        required: true
+        type: string
+      - description: Item
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/crud.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crud.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Update Item
+      tags:
+      - Item
+  /item/move/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Move Item via Collections
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Target Collection
+        in: query
+        name: target
+        required: true
+        type: string
+      - description: Origin Collection
+        in: query
+        name: origin
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Move Item
+      tags:
+      - Item
 swagger: "2.0"
