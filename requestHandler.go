@@ -195,7 +195,7 @@ func analyzeImgurRequestHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, imageInfoList)
+	ctx.JSON(http.StatusOK, gin.H{"images": imageInfoList})
 }
 
 func dropboxRequestHandler(ctx *gin.Context) {
