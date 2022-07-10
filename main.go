@@ -52,10 +52,10 @@ func main() {
 	collectionGroup := router.Group("/collection")
 	{
 		collectionGroup.GET("/list", getCollectionListRequestHandler)
+		collectionGroup.GET("/clean", cleanOldItemsRequestHandler)
 		targetCollection := collectionGroup.Group("/:target")
 		{
 			targetCollection.GET("", getItemListRequestHandler)
-			targetCollection.GET("/clean", cleanOldItemsRequestHandler)
 			targetCollection.GET("/info", getCollectionInfoRequestHandler)
 			targetCollection.DELETE("/clear", clearCollectionRequestHandler)
 		}
