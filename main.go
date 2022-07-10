@@ -7,6 +7,9 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	docs "github.com/rlatmfrl24/applemint-go/docs"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -18,6 +21,7 @@ func main() {
 	}
 
 	router := gin.Default()
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"*"},
 		AllowMethods:  []string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"},
@@ -74,6 +78,14 @@ func main() {
 		raindropGroup.GET("/list", getRaindropCollectionListRequestHandler)
 		raindropGroup.PUT("/:collectionId", sendToRaindropRequestHandler)
 	}
+
+	// Swagger API
+	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.Title = "AppleMint"
+	docs.SwaggerInfo.Version = "1.0"
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	router.Run()
 }
