@@ -36,7 +36,7 @@ type GalleryItem struct {
 }
 
 type GalleryResponse struct {
-	Items  []GalleryItem `json:"item"`
+	Items  []GalleryItem `json:"items"`
 	Count  int64         `json:"count"`
 	Cursor int64         `json:"cursor"`
 }
