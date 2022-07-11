@@ -6,6 +6,37 @@ definitions:
       path:
         type: string
     type: object
+  crud.GalleryItem:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      origin:
+        type: string
+      text:
+        type: string
+    type: object
+  crud.GalleryResponse:
+    properties:
+      count:
+        type: integer
+      cursor:
+        type: integer
+      item:
+        items:
+          $ref: '#/definitions/crud.GalleryItem'
+        type: array
+    type: object
+  crud.GroupInfo:
+    properties:
+      count:
+        type: integer
+      domain:
+        type: string
+    type: object
   crud.Item:
     properties:
       domain:
@@ -27,6 +58,22 @@ definitions:
       url:
         type: string
     type: object
+  main.AnalyzeImgurResponse:
+    properties:
+      images:
+        items:
+          type: string
+        type: array
+    type: object
+  main.GroupInfoResponse:
+    properties:
+      groupInfos:
+        items:
+          $ref: '#/definitions/crud.GroupInfo'
+        type: array
+      totalCount:
+        type: integer
+    type: object
   main.MessageModel:
     properties:
       message:
@@ -37,11 +84,29 @@ definitions:
 info:
   contact: {}
 paths:
-  /bookmark:
+  /collection/{target}:
     get:
       consumes:
       - application/json
-      description: Get Bookmark List
+      description: Get Item List
+      parameters:
+      - description: Collection
+        in: path
+        name: target
+        required: true
+        type: string
+      - description: Cursor
+        in: query
+        name: cursor
+        type: number
+      - description: Domain
+        in: query
+        name: domain
+        type: string
+      - description: Path
+        in: query
+        name: path
+        type: string
       produces:
       - application/json
       responses:
@@ -49,7 +114,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/crud.BookmarkInfo'
+              $ref: '#/definitions/crud.Item'
             type: array
         "400":
           description: Bad Request
@@ -59,10 +124,215 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/main.MessageModel'
-      summary: Get Bookmark List
+      summary: Get Item List
       tags:
       - Item
-  /item/{id}/{collection}:
+  /collection/{target}/clear:
+    delete:
+      consumes:
+      - application/json
+      description: Clear Collection
+      parameters:
+      - description: Collection
+        in: path
+        name: target
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Clear Collection
+      tags:
+      - Collection
+  /collection/{target}/info:
+    get:
+      consumes:
+      - application/json
+      description: Get Collection Info
+      parameters:
+      - description: Collection
+        in: path
+        name: target
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.GroupInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Collection Info
+      tags:
+      - Collection
+  /collection/list:
+    get:
+      consumes:
+      - application/json
+      description: Get Collection List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Collection List
+      tags:
+      - Collection
+  /crawl/{target}:
+    get:
+      consumes:
+      - application/json
+      description: Crawl Target Site
+      parameters:
+      - description: Collection
+        in: path
+        name: target
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Crawl Collection
+      tags:
+      - Common
+  /dropbox:
+    get:
+      consumes:
+      - application/json
+      description: Send to Dropbox
+      parameters:
+      - description: Path
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: URL
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Send to Dropbox
+      tags:
+      - External
+  /gallery:
+    get:
+      consumes:
+      - application/json
+      description: Get Gallery Items
+      parameters:
+      - description: Cursor
+        in: query
+        name: cursor
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/crud.GalleryResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Gallery Items
+      tags:
+      - Gallery
+  /gallery/imgur:
+    get:
+      consumes:
+      - application/json
+      description: Analyze Gallery Item
+      parameters:
+      - description: Imgur Link
+        in: query
+        name: link
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.AnalyzeImgurResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Analyze Gallery Item
+      tags:
+      - Gallery
+  /item/{collection}/{id}:
     delete:
       consumes:
       - application/json
@@ -168,6 +438,71 @@ paths:
       summary: Update Item
       tags:
       - Item
+  /item/bookmark:
+    post:
+      consumes:
+      - application/json
+      description: Make Bookmark
+      parameters:
+      - description: Bookmark
+        in: body
+        name: Item
+        required: true
+        schema:
+          $ref: '#/definitions/crud.Item'
+      - description: Origin Collection of Item
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: Bookmark Path
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/crud.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Make Bookmark
+      tags:
+      - Bookmark
+  /item/bookmark/list:
+    get:
+      consumes:
+      - application/json
+      description: Get Bookmark List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/crud.BookmarkInfo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Bookmark List
+      tags:
+      - Bookmark
   /item/move/{id}:
     get:
       consumes:
@@ -207,4 +542,64 @@ paths:
       summary: Move Item
       tags:
       - Item
+  /raindrop/{collectionId}:
+    put:
+      consumes:
+      - application/json
+      description: Send to Raindrop
+      parameters:
+      - description: Raindrop Collection ID
+        in: path
+        name: collectionId
+        required: true
+        type: string
+      - description: Raindrop Request
+        in: body
+        name: Item
+        required: true
+        schema:
+          $ref: '#/definitions/crud.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Send to Raindrop
+      tags:
+      - External
+  /raindrop/list:
+    get:
+      consumes:
+      - application/json
+      description: Get Raindrop Collection List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.MessageModel'
+      summary: Get Raindrop Collection List
+      tags:
+      - External
 swagger: "2.0"

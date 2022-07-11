@@ -11,11 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type GroupInfo struct {
-	Domain string `bson:"_id"`
-	Count  int64  `bson:"count"`
-}
-
 func GetCollectionList() ([]string, error) {
 	// Connect to DB
 	dbclient := connectDB()
