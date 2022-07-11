@@ -8,11 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type BookmarkInfo struct {
-	Path  string `bson:"_id"`
-	Count int64  `bson:"count"`
-}
-
 func SendToBookmark(item Item, coll_origin string, path string) (Item, error) {
 	// connect to raindrop
 	log.Print("SendToBookmark")
