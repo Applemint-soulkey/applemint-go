@@ -1,6 +1,6 @@
 # applemint-go
 
-> !Notice!: This Project is personal and unstable. Please Don't access any api
+> Notice: This Project is personal and unstable. Please Don't access any api
 
 ## Summary
 API Endpoint : [`https://applemint-go-2gyldlncea-an.a.run.app`](https://applemint-go-2gyldlncea-an.a.run.app)
