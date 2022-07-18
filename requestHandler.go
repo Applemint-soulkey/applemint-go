@@ -34,6 +34,7 @@ func moveItemRequestHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, MessageModel{Type: "error", Message: "missing target or origin"})
 		return
 	}
+
 	err := crud.MoveItem(id, origin, target)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, MessageModel{Type: "error", Message: err.Error()})
