@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetCollectionList() ([]string, error) {
@@ -122,9 +122,25 @@ func GetItems(collectionName string, cursor int64, domain string, path string) (
 
 	log.Println(domainFilterMap)
 
-	findOption := options.Find().SetSort(bson.M{"timestamp": -1}).SetSort(bson.M{"_id": -1}).SetLimit(PAGE_SIZE).SetSkip(cursor)
-	dbCursor, err := coll.Find(context.TODO(), domainFilterMap, findOption)
-
+	// Make Stage
+	stage := bson.A{
+		bson.D{
+			{"$match",
+				domainFilterMap,
+			},
+		},
+		bson.D{
+			{"$sort",
+				bson.D{
+					{"timestamp", -1},
+					{"_id", -1},
+				},
+			},
+		},
+		bson.D{{"$skip", cursor}},
+		bson.D{{"$limit", PAGE_SIZE}},
+	}
+	dbCursor, err := coll.Aggregate(context.TODO(), stage)
 	checkError(err)
 
 	// Get Items
@@ -230,6 +246,11 @@ func MoveItem(itemId string, coll_origin string, coll_dest string) error {
 		err = origin_coll.FindOne(context.TODO(), bson.M{"_id": bsonItemId}).Decode(&item)
 		if err != nil {
 			return err
+		}
+
+		// Update Timestamp when item is moved to Trash
+		if coll_dest == "trash" {
+			item.Timestamp = time.Now()
 		}
 
 		_, err = dest_coll.InsertOne(context.TODO(), item)
